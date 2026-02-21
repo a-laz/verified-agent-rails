@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+.next/
+.swc/
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.hypothesis/
+htmlcov/
+.coverage
+venv/
+.venv/
+.venv*
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.cursor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (runtime data)
+data/uploads/
+
+# Agent Stack local storage
+.agentstack_storage/
+
+# Claude Code (track rules, ignore local settings)
+.claude/*
+!.claude/rules/
+.claude/settings.local.json
+
+# Logs
+*.log
+logs/
+
+# Misc
+*.pem
+*.pkl

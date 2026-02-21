@@ -1,0 +1,167 @@
+/* ══════════════════════════════════════════════════════════════
+   Design Tokens — Single source of truth for all design values
+   Import this in your app's layout to activate the design system.
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Surfaces */
+  --bg: #F6F7FB;
+  --panel: #FFFFFF;
+  --panel-2: #F1F5F9;
+  --panel-3: #EAF2FF;
+
+  /* Text */
+  --text: #0F172A;
+  --muted: #52657D;
+  --subtle: #6B7D96;
+  --text-inverse: #FFFFFF;
+
+  /* Borders */
+  --border: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --border-control: #8596AD;
+
+  /* Primary intent */
+  --accent: #2563EB;
+  --accent-hover: #1D4ED8;
+  --accent-pressed: #1E40AF;
+  --accent-soft: #EAF2FF;
+
+  /* AI/system accent */
+  --ai: #7C3AED;
+  --ai-hover: #6D28D9;
+  --ai-pressed: #5B21B6;
+  --ai-soft: #F3E8FF;
+
+  /* Status */
+  --success: #15803D;
+  --success-soft: #DCFCE7;
+  --warning: #B45309;
+  --warning-soft: #FFEDD5;
+  --danger: #DC2626;
+  --danger-soft: #FEE2E2;
+
+  /* Focus */
+  --focus-inner: #2563EB;
+  --focus-outer: rgba(37, 99, 235, 0.22);
+
+  /* Elevation */
+  --shadow-e1: 0 1px 2px rgba(15,23,42,0.06);
+  --shadow-e2: 0 10px 28px rgba(15,23,42,0.10);
+  --shadow-e3: 0 20px 60px rgba(15,23,42,0.16);
+  --shadow-rail: -2px 0 8px rgba(15,23,42,0.04);
+
+  /* AI signature */
+  --ai-hairline: linear-gradient(90deg, rgba(37,99,235,0.65), rgba(124,58,237,0.65));
+
+  /* Typography */
+  --font-body:    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-ui:      "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-data:    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-mono:    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-prose:   "Merriweather", Georgia, serif;
+
+  /* Shell layout */
+  --rail-width: clamp(320px, 11.628vw, 400px);
+  --header-height: 56px;
+
+  /* Typography scale */
+  --type-2xs:  clamp(8px, 0.291vw, 10px);
+  --type-xs:   clamp(9px, 0.320vw, 11px);
+  --type-sm:   clamp(10px, 0.349vw, 12px);
+  --type-base: clamp(11px, 0.378vw, 13px);
+  --type-md:   clamp(11px, 0.407vw, 14px);
+  --type-lg:   clamp(12px, 0.465vw, 16px);
+  --type-xl:   clamp(13px, 0.523vw, 18px);
+  --type-2xl:  clamp(16px, 0.698vw, 24px);
+
+  /* Weights */
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Line heights */
+  --leading-none: 1;
+  --leading-tight: 1.3;
+  --leading-normal: 1.45;
+  --leading-relaxed: 1.5;
+  --leading-loose: 1.65;
+
+  /* Letter spacing */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.03em;
+  --tracking-overline: 0.05em;
+  --tracking-caps: 0.08em;
+
+  /* FX layer — off by default in light theme */
+  --glow-accent: 0 0 0 transparent;
+  --glow-ai: 0 0 0 transparent;
+  --border-glow: 0 0 0 transparent;
+  --noise-opacity: 0;
+  --scanline-opacity: 0;
+
+  /* Glass surface system */
+  --glass-bg: var(--panel);
+  --glass-bg-hover: var(--panel-2);
+  --glass-bg-dense: var(--panel);
+  --glass-backdrop: none;
+  --glass-border: var(--border);
+  --glass-border-hover: var(--border-strong);
+  --glass-highlight: 0 0 0 0 transparent;
+  --glass-shadow: var(--shadow-e1);
+  --glass-elevated-bg: var(--panel);
+  --glass-rail-bg: var(--panel);
+  --glass-rail-backdrop: none;
+  --glass-text-glow: none;
+
+  /* Component tokens */
+  --header-plate-bg: transparent;
+  --header-plate-border: var(--border);
+}
+
+/* ── Calm Intelligence 1.0 Tokens ── */
+:root {
+  --calm-user: var(--accent);
+  --calm-ai: var(--ai);
+  --calm-ok: var(--success);
+  --calm-warn: var(--warning);
+  --calm-err: var(--danger);
+
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;
+  --sp-4: clamp(12px, 0.465vw, 16px);
+  --sp-5: clamp(16px, 0.698vw, 24px);
+  --sp-6: clamp(20px, 0.930vw, 32px);
+  --sp-7: clamp(28px, 1.395vw, 48px);
+
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-control: 10px;
+  --r-card: 14px;
+  --r-pill: 999px;
+
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-standard: 180ms;
+  --dur-modal: 240ms;
+
+  --calm-card-bg: var(--panel);
+  --calm-card-border: var(--border);
+  --calm-card-bg-user: var(--accent-soft);
+  --calm-card-bg-ai: var(--ai-soft);
+
+  --scrollbar-size: 10px;
+  --scrollbar-thumb: rgba(0, 0, 0, 0.22);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.38);
+  --scrollbar-track: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-standard: 0ms;
+    --dur-modal: 0ms;
+  }
+}

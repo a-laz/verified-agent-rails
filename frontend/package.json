@@ -1,0 +1,29 @@
+{
+  "name": "agent-stack-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@agent-stack/core": "*",
+    "@agent-stack/ui": "*",
+    "dompurify": "^3.3.1",
+    "marked": "^17.0.1",
+    "next": "^14.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/dompurify": "^3.0.5",
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.5.3"
+  }
+}

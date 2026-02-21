@@ -1,0 +1,210 @@
+/* ══════════════════════════════════════════════════════════════
+   Cyberpunk Theme — Overrides cosmetic tokens from tokens.css
+   Activated via data-theme="cyberpunk" on <html>.
+   Calm theme is the default (no attribute needed).
+   ══════════════════════════════════════════════════════════════ */
+
+:root[data-theme="cyberpunk"] {
+  /* Surfaces */
+  --bg: #09090B;
+  --panel: #111114;
+  --panel-2: #19191D;
+  --panel-3: #222228;
+
+  /* Text */
+  --text: #E4E4E7;
+  --muted: #8B8B96;
+  --subtle: #65656F;
+  --text-inverse: #09090B;
+
+  /* Borders */
+  --border: #27272A;
+  --border-strong: #3F3F46;
+  --border-control: #52525B;
+
+  /* Primary intent (neon cyan) */
+  --accent: #00FFCC;
+  --accent-hover: #00DDaa;
+  --accent-pressed: #00BB88;
+  --accent-soft: rgba(0, 255, 204, 0.10);
+
+  /* AI/system accent (neon magenta) */
+  --ai: #FF00FF;
+  --ai-hover: #DD00DD;
+  --ai-pressed: #BB00BB;
+  --ai-soft: rgba(255, 0, 255, 0.10);
+
+  /* Status */
+  --success: #00FF88;
+  --success-soft: rgba(0, 255, 136, 0.10);
+  --warning: #FFaa00;
+  --warning-soft: rgba(255, 170, 0, 0.10);
+  --danger: #FF3366;
+  --danger-soft: rgba(255, 51, 102, 0.10);
+
+  /* Focus */
+  --focus-inner: #00FFCC;
+  --focus-outer: rgba(0, 255, 204, 0.22);
+
+  /* Elevation (cyan tint) */
+  --shadow-e1: 0 1px 4px rgba(0, 255, 204, 0.04);
+  --shadow-e2: 0 10px 28px rgba(0, 0, 0, 0.4);
+  --shadow-e3: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-rail: -2px 0 12px rgba(0, 255, 204, 0.06);
+
+  /* AI signature (cyan→magenta gradient) */
+  --ai-hairline: linear-gradient(90deg, rgba(0, 255, 204, 0.65), rgba(255, 0, 255, 0.65));
+
+  /* Tool call status colors */
+  --status-info: #00CCFF;
+  --status-info-text: #00CCFF;
+  --status-info-soft: rgba(0, 204, 255, 0.08);
+  --status-ok: #00FF88;
+  --status-ok-text: #00FF88;
+  --status-ok-soft: rgba(0, 255, 136, 0.08);
+  --status-fail: #FF3366;
+  --status-fail-text: #FF3366;
+  --status-fail-soft: rgba(255, 51, 102, 0.08);
+  --status-warn-alt: #FFaa00;
+  --status-warn-soft: rgba(255, 170, 0, 0.08);
+
+  /* Confirmation badge */
+  --confirm-bg: rgba(245, 158, 11, 0.15);
+  --confirm-text: #FFaa00;
+
+  /* Card surfaces */
+  --calm-card-bg: var(--panel);
+  --calm-card-border: var(--border);
+  --calm-card-bg-user: var(--accent-soft);
+  --calm-card-bg-ai: var(--ai-soft);
+
+  /* Scrollbar */
+  --scrollbar-thumb:       rgba(255, 255, 255, 0.20);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.35);
+
+  /* Interaction overlays — light overlays on dark surfaces */
+  --hover-overlay:    rgba(255, 255, 255, 0.06);
+  --focus-overlay:    rgba(255, 255, 255, 0.10);
+  --backdrop-overlay: rgba(0, 0, 0, 0.75);
+
+  /* FX layer — neon cyberpunk effects */
+  --glow-accent:      0 0 16px rgba(0, 255, 204, 0.25);
+  --glow-ai:          0 0 16px rgba(255, 0, 255, 0.25);
+  --border-glow:      0 0 2px rgba(0, 255, 204, 0.30);
+  --glow-quarantine:  0 0 16px rgba(255, 51, 102, 0.30);
+  --glow-quarantine-peak: 0 0 20px rgba(255, 51, 102, 0.40);
+  --noise-opacity:    0.04;
+  --scanline-opacity: 0.06;
+
+  /* ── Glass Surface System ── */
+  --glass-bg:          rgba(17, 17, 20, 0.72);
+  --glass-bg-hover:    rgba(17, 17, 20, 0.76);
+  --glass-bg-dense:    rgba(17, 17, 20, 0.92);
+  --glass-backdrop:    blur(16px) saturate(1.1) brightness(0.88);
+  --glass-border:      rgba(0, 255, 204, 0.15);
+  --glass-border-hover: rgba(0, 255, 204, 0.22);
+  --glass-highlight:   inset 0 1px 0 rgba(0, 255, 204, 0.08);
+  --glass-shadow:      0 8px 32px rgba(0,0,0,0.45), 0 0 12px rgba(0,255,204,0.08);
+  --glass-edge-glow:   0 0 0 transparent;
+  --glass-inner-glow:  0 0 0 transparent;
+  --glass-edge-glow-active:  0 0 6px rgba(0, 255, 204, 0.20);
+  --glass-inner-glow-active: inset 0 0 20px rgba(0, 255, 204, 0.04);
+  --glass-stroke-outer: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --glass-stroke-inner: inset 0 0 0 1px rgba(0, 255, 204, 0.10);
+  --glass-text-glow:   0 0 8px rgba(0, 255, 204, 0.30);
+
+  /* Corner brackets — neon cyan on active panels */
+  --bracket-color: var(--accent);
+  --bracket-size: 20px;
+  --bracket-weight: 1px;
+  --glass-elevated-bg: rgba(17, 17, 20, 0.82);
+  --glass-rail-bg:     rgba(17, 17, 20, 0.85);
+  --glass-rail-backdrop: blur(12px) saturate(1.1) brightness(0.90);
+  --canvas-glow-1:     rgba(0, 255, 204, 0.06);
+  --canvas-glow-2:     rgba(255, 0, 255, 0.04);
+
+  /* Edge-charge animation peak + canvas scrim */
+  --glow-charge:       rgba(0, 255, 204, 0.50);
+  --canvas-scrim:      radial-gradient(ellipse at 50% 40%, transparent 20%, rgba(0,0,0,0.35) 100%);
+
+  /* Font stacks */
+  --font-body:    "Share Tech", ui-monospace, monospace;
+  --font-display: "Orbitron", ui-monospace, monospace;
+  --font-ui:      "Share Tech", ui-monospace, monospace;
+  --font-data:    "Share Tech", ui-monospace, monospace;
+  --font-mono:    ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-prose:   "Share Tech", Georgia, serif;
+
+  /* Component tokens */
+  --header-plate-bg:             var(--panel-2);
+  --header-plate-border:         rgba(255, 255, 255, 0.06);
+  --shell-focus-animation:       neon-edge-charge 0.4s var(--ease-standard);
+  --shell-quarantine-animation:  quarantine-pulse 0.5s var(--ease-standard);
+}
+
+/* ── FX Overlay Layer ──
+   Token-driven pseudo-elements for noise/scanlines.
+   Controlled by --noise-opacity and --scanline-opacity tokens.
+   Calm theme sets both to 0 (invisible, no paint cost).
+   ─────────────────────────────────────────────────── */
+
+/* Noise texture overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: var(--noise-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Scanline overlay */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: var(--scanline-opacity);
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+}
+
+/* ── Data/Ambient Visual Role ── */
+
+[data-theme="cyberpunk"] .dashboard-shell--data {
+  --glass-bg: var(--glass-bg-dense);
+  --glass-border: rgba(255, 255, 255, 0.10);
+}
+
+
+@supports not (backdrop-filter: blur(1px)) {
+  :root[data-theme="cyberpunk"] {
+    --glass-bg: rgba(17, 17, 20, 0.92);
+    --glass-bg-hover: rgba(17, 17, 20, 0.94);
+    --glass-bg-dense: rgba(17, 17, 20, 0.96);
+    --glass-elevated-bg: rgba(17, 17, 20, 0.95);
+    --glass-rail-bg: rgba(17, 17, 20, 0.95);
+    --glass-border: rgba(255, 255, 255, 0.14);
+    --glass-border-hover: rgba(255, 255, 255, 0.20);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="cyberpunk"] {
+    --glass-backdrop: none;
+    --glass-rail-backdrop: none;
+    --glass-bg: rgba(17, 17, 20, 0.90);
+    --glass-bg-dense: rgba(17, 17, 20, 0.95);
+    --glass-elevated-bg: rgba(17, 17, 20, 0.93);
+    --glass-rail-bg: rgba(17, 17, 20, 0.93);
+  }
+}
