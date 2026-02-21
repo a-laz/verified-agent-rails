@@ -9,23 +9,24 @@ Minimal multi-agent app template for hackathons. Orchestrator + specialist agent
 git clone <repo-url> my-project
 cd my-project
 
-# 2. Install frontend deps
-npm install
+# 2. Automated setup (installs deps, creates .env, prompts for API key)
+./scripts/setup.sh
 
-# 3. Install backend deps
-cd backend && pip install -r requirements.txt && cd ..
-
-# 4. Configure
-cp .env.example .env
-cp backend/.env.example backend/.env
-# Edit backend/.env — add your ANTHROPIC_API_KEY
-
-# 5. Run (two terminals)
-cd backend && uvicorn src.main:app --reload --port 8000
+# 3. Run (two terminals)
+cd backend && source venv/bin/activate && uvicorn src.main:app --reload --port 8000
 cd frontend && npm run dev
 ```
 
 Open http://localhost:3000 and start chatting.
+
+### Manual setup (if you prefer)
+
+```bash
+npm install
+cd backend && pip install -r requirements.txt && cd ..
+cp backend/.env.example backend/.env   # add your ANTHROPIC_API_KEY
+cp frontend/.env.example frontend/.env.local
+```
 
 ## What's Included
 
@@ -62,9 +63,25 @@ This repo includes comprehensive `CLAUDE.md` files and `.claude/rules/` for AI-a
 
 ## Deployment
 
-- **Frontend**: Vercel — set Root Directory to `frontend`
-- **Backend**: Railway — set Root Directory to `backend`
-- See `.claude/rules/deployment.md` for details
+### One-command deploy
+
+```bash
+# Prerequisites: gh, vercel, railway CLIs installed and logged in
+./scripts/deploy.sh
+```
+
+This will:
+1. Create a GitHub repo and push your code
+2. Deploy the backend to Railway (sets API key, storage config)
+3. Deploy the frontend to Vercel (sets backend URL)
+4. Cross-link the URLs (CORS on Railway, API URL on Vercel)
+5. Print the live URLs
+
+### Manual deploy
+
+- **Frontend**: Vercel — set Root Directory to `frontend`, env var `NEXT_PUBLIC_API_URL`
+- **Backend**: Railway — set Root Directory to `backend`, env vars `ANTHROPIC_API_KEY`, `FRONTEND_URL`
+- See `.claude/rules/deployment.md` for gotchas
 
 ## License
 
