@@ -9,11 +9,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@dynamic-labs/ethereum": "^4.88.5",
+    "@dynamic-labs/sdk-react-core": "^4.88.5",
     "@var/shared": "*",
     "next": "^15.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "viem": "^2.21.0"
+    "viem": "^2.52.2"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
