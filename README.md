@@ -15,4 +15,26 @@ Standards: ERC-7943 canTransfer (Final) as the compliance surface, registry voca
 
 ## Target chain
 
-Arc testnet, chain id 5042002. Native gas is USDC at 18 decimals; ERC-20 USDC is 6 decimals. All token amounts in this codebase go through `shared/parseUSDC.ts`.
+Arc testnet, chain id 5042002. Native gas is USDC at 18 decimals; ERC-20 USDC is 6 decimals. All token amounts in this codebase go through `shared/src/parseUSDC.ts`.
+
+## Runbook
+
+```sh
+# test
+cd contracts && forge test
+
+# fund the deployer with testnet USDC gas
+open https://faucet.circle.com
+
+# deploy (writes shared/addresses.json)
+cd contracts
+cp .env.example .env   # fill in DEPLOYER_PRIVATE_KEY
+set -a; source .env; set +a
+forge script script/Deploy.s.sol --rpc-url "$ARC_TESTNET_RPC_URL" --broadcast
+
+# verify on Blockscout (no API key)
+./verify.sh
+
+# regenerate ABIs after contract changes
+cd shared && npm run build:abis
+```
