@@ -5,8 +5,9 @@ libs = ["lib"]
 test = "test"
 script = "script"
 solc_version = "0.8.26"
-# paris avoids PUSH0 and newer opcodes; safe default for Arc testnet
-evm_version = "paris"
+# cancun matches the stock Foundry defaults used in Arc's own deploy tutorial;
+# OZ v5.6 requires mcopy which is Cancun-only
+evm_version = "cancun"
 optimizer = true
 optimizer_runs = 200
 
