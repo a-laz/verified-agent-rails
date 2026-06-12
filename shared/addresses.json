@@ -1,0 +1,7 @@
+{
+  "chainId": 5042002,
+  "DelegationMirror": { "address": "", "deployBlock": 0 },
+  "GatedUSD": { "address": "", "deployBlock": 0 },
+  "MockYieldVault": { "address": "", "deployBlock": 0 },
+  "ServiceSink": { "address": "", "deployBlock": 0 }
+}
