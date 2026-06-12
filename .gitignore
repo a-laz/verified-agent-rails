@@ -1,0 +1,23 @@
+# env files
+.env
+.env.*
+!.env.example
+
+# node
+node_modules/
+
+# foundry
+contracts/cache/
+contracts/out/
+contracts/broadcast/
+
+# next.js
+web/.next/
+web/out/
+
+# build outputs
+dist/
+*.tsbuildinfo
+
+# misc
+.DS_Store
