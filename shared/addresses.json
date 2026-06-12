@@ -1,7 +1,19 @@
 {
-  "chainId": 5042002,
-  "DelegationMirror": { "address": "", "deployBlock": 0 },
-  "GatedUSD": { "address": "", "deployBlock": 0 },
-  "MockYieldVault": { "address": "", "deployBlock": 0 },
-  "ServiceSink": { "address": "", "deployBlock": 0 }
+  "DelegationMirror": {
+    "address": "0x5b81DD7718F4c2EaEd4626F39Ee025940Fbd1708",
+    "deployBlock": 46786171
+  },
+  "GatedUSD": {
+    "address": "0xeB5C8Fd0684cD99DAe6a882D002442D43fb6a1fD",
+    "deployBlock": 46786171
+  },
+  "MockYieldVault": {
+    "address": "0x95B055166e64a67eAb9cc6839fAa6DCB1670a798",
+    "deployBlock": 46786171
+  },
+  "ServiceSink": {
+    "address": "0x0b48E3F29AC8d0a0abeFEfd8B703C13AA0f2e95E",
+    "deployBlock": 46786171
+  },
+  "chainId": 5042002
 }
