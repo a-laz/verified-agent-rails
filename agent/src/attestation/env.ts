@@ -63,3 +63,25 @@ export function readAttestorPrivateKey(): Hex {
   }
   return raw as Hex;
 }
+
+/**
+ * Optional gas payer for the submit transaction. submitAttestation is
+ * permissionless (the signature carries all the authority), so the tx sender
+ * only pays gas and has no power over the mandate. Keeping it separate lets the
+ * attestor key sign offline and never hold funds. Returns undefined when unset,
+ * in which case the attestor key sends its own transaction. SECRET; never logged.
+ */
+export function readSubmitterPrivateKey(): Hex | undefined {
+  loadAttestationEnv();
+  const raw = process.env.SUBMITTER_PRIVATE_KEY;
+  if (raw === undefined || raw === "") {
+    return undefined;
+  }
+  if (!PRIVATE_KEY_RE.test(raw)) {
+    throw new Error(
+      "SUBMITTER_PRIVATE_KEY is malformed. Expected 0x followed by 64 hex characters. " +
+        "(Value withheld from this message on purpose.)",
+    );
+  }
+  return raw as Hex;
+}

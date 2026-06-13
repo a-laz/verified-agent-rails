@@ -41,6 +41,7 @@ import { appendAuditEntry, type AuditEntry } from "../attestation/auditLog.js";
 import {
   readArcRpcUrl,
   readAttestorPrivateKey,
+  readSubmitterPrivateKey,
   readWorldchainRpcUrl,
 } from "../attestation/env.js";
 
@@ -257,8 +258,14 @@ async function main(): Promise<void> {
       );
       process.exit(1);
     }
+    // Gas payer for the tx. submitAttestation is permissionless, so this can be
+    // a funded relayer that is not the attestor; the attestor key then signs
+    // offline and never holds funds. Defaults to the attestor key when unset.
+    const submitterKey = readSubmitterPrivateKey() ?? attestorKey;
+    const submitterAddress = privateKeyToAccount(submitterKey).address;
     console.log("Submitting on Arc...");
-    const result = await submitAttestation(signed, attestorKey, arcClient, arcRpcUrl, mirror);
+    console.log("  submitter (gas payer):", submitterAddress);
+    const result = await submitAttestation(signed, submitterKey, arcClient, arcRpcUrl, mirror);
     txHash = result.txHash;
     txStatus = result.status;
     console.log("  txHash:     ", result.txHash);
