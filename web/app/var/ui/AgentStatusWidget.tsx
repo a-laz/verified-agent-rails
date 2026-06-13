@@ -53,13 +53,17 @@ export function AgentStatusWidget({
   amount,
   setAmount,
   onCheck,
+  onPay,
   busy,
+  payBusy,
 }: {
   status: StatusView | null;
   amount: string;
   setAmount: (v: string) => void;
   onCheck: () => void;
+  onPay: () => void;
   busy: boolean;
+  payBusy: boolean;
 }) {
   const reason = status?.reason ?? "";
   const isOk = reason === "OK";
@@ -132,11 +136,18 @@ export function AgentStatusWidget({
         </button>
         <button
           type="button"
-          disabled
-          title="Pay/Park are driven by the agent loop (next workstream). The gate check above is live."
-          style={{ ...buttonBase, opacity: 0.5, cursor: "not-allowed" }}
+          onClick={onPay}
+          disabled={payBusy || busy}
+          title="The agent's own wallet sends this amount through the gate. Within cap pays; over cap is blocked."
+          style={{
+            ...buttonBase,
+            background: "var(--accent)",
+            color: "var(--text-on-accent)",
+            borderColor: "var(--accent)",
+            opacity: payBusy || busy ? 0.6 : 1,
+          }}
         >
-          Pay / Park (agent loop)
+          {payBusy ? "Paying…" : "Pay (agent spends)"}
         </button>
       </div>
     </div>

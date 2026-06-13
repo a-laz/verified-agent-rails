@@ -2,10 +2,17 @@
 
 import { useState } from "react";
 import { DynamicWidget, useDynamicContext } from "@dynamic-labs/sdk-react-core";
-import type { Address } from "viem";
-import { DEFAULT_AGENT, shortAddr } from "@/lib/var";
+import { parseEther, type Address } from "viem";
+import { parseUSDC } from "@var/shared";
+import { DEFAULT_AGENT, readAgentFunds, shortAddr } from "@/lib/var";
 import { useVar } from "@/lib/useVar";
-import { relaySubmitAttestation, revokeMandate, type SignedAttestationWire } from "@/lib/wallet";
+import {
+  faucetMintTo,
+  relaySubmitAttestation,
+  revokeMandate,
+  sendNativeToAgent,
+  type SignedAttestationWire,
+} from "@/lib/wallet";
 import { WidgetCard } from "./ui/WidgetCard";
 import { MandateWidget } from "./ui/MandateWidget";
 import { AgentStatusWidget } from "./ui/AgentStatusWidget";
@@ -26,9 +33,14 @@ export function VarDashboard() {
 
   const [amount, setAmount] = useState("25");
   const [spendCap, setSpendCap] = useState("10");
+  const [fundBudget, setFundBudget] = useState("50");
   const [expiryMinutes, setExpiryMinutes] = useState("60");
   const [busy, setBusy] = useState<string | null>(null);
   const [toast, setToast] = useState<{ ok: boolean; text: string } | null>(null);
+
+  // Top up the agent's gas if it falls below this; send this much when topping up.
+  const GAS_MIN = parseEther("0.3");
+  const GAS_TOPUP = parseEther("1");
 
   const { mandate, feed, status, refresh, refreshStatus } = useVar(agent, amount);
 
@@ -54,8 +66,45 @@ export function VarDashboard() {
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "grant failed");
       const tx = await relaySubmitAttestation(primaryWallet, body as SignedAttestationWire);
-      setToast({ ok: true, text: `Mandate granted. tx ${tx}` });
+
+      // Provision the agent from the connected wallet so it can actually pay:
+      // top up gas (native USDC) if low, and mint the gUSD budget difference.
+      setToast({ ok: true, text: "Mandate granted. Provisioning the agent…" });
+      const funds = await readAgentFunds(agent);
+      const budget = parseUSDC(fundBudget && fundBudget !== "" ? fundBudget : "0");
+      if (budget > funds.gusd) {
+        await faucetMintTo(primaryWallet, agent, budget - funds.gusd);
+      }
+      if (funds.native < GAS_MIN) {
+        await sendNativeToAgent(primaryWallet, agent, GAS_TOPUP);
+      }
+
+      setToast({ ok: true, text: `Mandate granted & agent funded. tx ${tx}` });
       await refresh();
+    } catch (e) {
+      setToast({ ok: false, text: (e as Error).message });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handlePay = async () => {
+    setBusy("pay");
+    setToast(null);
+    try {
+      const res = await fetch("/api/var/pay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agent, amount }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error ?? "pay failed");
+      if (body.blocked) {
+        setToast({ ok: false, text: `Gate blocked the payment: ${body.reason} — no funds moved.` });
+      } else {
+        setToast({ ok: true, text: `Agent paid ${body.amount} gUSD through the gate. tx ${body.txHash}` });
+      }
+      await Promise.all([refresh(), refreshStatus()]);
     } catch (e) {
       setToast({ ok: false, text: (e as Error).message });
     } finally {
@@ -193,6 +242,8 @@ export function VarDashboard() {
               mandate={mandate}
               spendCap={spendCap}
               setSpendCap={setSpendCap}
+              fundBudget={fundBudget}
+              setFundBudget={setFundBudget}
               expiryMinutes={expiryMinutes}
               setExpiryMinutes={setExpiryMinutes}
               onGrant={handleGrant}
@@ -207,7 +258,9 @@ export function VarDashboard() {
               amount={amount}
               setAmount={setAmount}
               onCheck={handleCheck}
+              onPay={handlePay}
               busy={busy === "check"}
+              payBusy={busy === "pay"}
             />
           </WidgetCard>
         </div>

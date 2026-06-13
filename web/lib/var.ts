@@ -8,6 +8,7 @@ import {
   ADDRESSES,
   DELEGATION_MIRROR_ADDRESS,
   DelegationMirrorAbi,
+  GatedUSDAbi,
   decodeReason,
   formatUSDC,
   parseUSDC,
@@ -69,6 +70,16 @@ export async function readMandate(agent: Address): Promise<MandateView> {
     active: registered && !m.revoked && expiry > now,
     nonce: m.nonce.toString(),
   };
+}
+
+// The agent's spendable balances on Arc: native USDC (gas) and gUSD (budget).
+// Used by fund-on-grant to decide what to top up.
+export async function readAgentFunds(agent: Address): Promise<{ native: bigint; gusd: bigint }> {
+  const [native, gusd] = await Promise.all([
+    arcPublic.getBalance({ address: agent }),
+    arcPublic.readContract({ address: GUSD, abi: GatedUSDAbi, functionName: "balanceOf", args: [agent] }),
+  ]);
+  return { native, gusd };
 }
 
 export interface StatusView {

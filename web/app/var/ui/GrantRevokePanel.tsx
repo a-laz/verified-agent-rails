@@ -36,6 +36,8 @@ export function GrantRevokePanel({
   mandate,
   spendCap,
   setSpendCap,
+  fundBudget,
+  setFundBudget,
   expiryMinutes,
   setExpiryMinutes,
   onGrant,
@@ -46,6 +48,8 @@ export function GrantRevokePanel({
   mandate: MandateView | null;
   spendCap: string;
   setSpendCap: (v: string) => void;
+  fundBudget: string;
+  setFundBudget: (v: string) => void;
   expiryMinutes: string;
   setExpiryMinutes: (v: string) => void;
   onGrant: () => void;
@@ -61,6 +65,20 @@ export function GrantRevokePanel({
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-1)" }}>
         <label style={labelStyle}>Spend cap (gUSD per transaction)</label>
         <input type="number" min="0" value={spendCap} onChange={(e) => setSpendCap(e.target.value)} style={inputStyle} />
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-1)" }}>
+        <label style={labelStyle}>Fund agent (gUSD budget)</label>
+        <input
+          type="number"
+          min="0"
+          value={fundBudget}
+          onChange={(e) => setFundBudget(e.target.value)}
+          style={inputStyle}
+        />
+        <span style={{ fontSize: "var(--type-2xs)", color: "var(--subtle)" }}>
+          Granting also funds the agent (gas + this gUSD budget) from your wallet.
+        </span>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-1)" }}>
@@ -91,7 +109,7 @@ export function GrantRevokePanel({
             opacity: disabled ? 0.6 : 1,
           }}
         >
-          {busy === "grant" ? "Granting…" : "Grant the leash"}
+          {busy === "grant" ? "Granting & funding…" : "Grant & fund the agent"}
         </button>
         <button
           type="button"
