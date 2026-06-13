@@ -5,9 +5,18 @@
 // gUSD budget still comes from the user's wallet; only this tiny gas top-up is
 // server-funded. No-op if the agent already has enough gas.
 import { NextResponse } from "next/server";
-import { createPublicClient, createWalletClient, getAddress, http, isAddress, parseEther, type Hex } from "viem";
+import {
+  createPublicClient,
+  createWalletClient,
+  getAddress,
+  http,
+  isAddress,
+  parseEther,
+  zeroAddress,
+  type Hex,
+} from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { arcTestnet } from "@var/shared";
+import { arcTestnet, DELEGATION_MIRROR_ADDRESS, DelegationMirrorAbi } from "@var/shared";
 import { crossOriginBlocked } from "@/lib/sameOrigin";
 
 export const runtime = "nodejs";
@@ -42,6 +51,23 @@ export async function POST(req: Request) {
   const transport = process.env.ARC_TESTNET_RPC_URL ? http(process.env.ARC_TESTNET_RPC_URL) : http();
   const pub = createPublicClient({ chain: arcTestnet, transport });
   try {
+    // Only fund agents that already hold a mandate. Mandates are attestor-gated,
+    // so an attacker can't fabricate one — this binds the funder's spend to
+    // legitimately-granted agents and prevents draining it to arbitrary
+    // addresses. (In the grant flow the mandate exists before this is called.)
+    const mandate = await pub.readContract({
+      address: DELEGATION_MIRROR_ADDRESS,
+      abi: DelegationMirrorAbi,
+      functionName: "getMandate",
+      args: [agent],
+    });
+    if (mandate.principal === zeroAddress) {
+      return NextResponse.json(
+        { error: "Agent has no mandate; nothing to fund. Grant first." },
+        { status: 403 },
+      );
+    }
+
     const balance = await pub.getBalance({ address: agent });
     if (balance >= GAS_MIN) {
       return NextResponse.json({ funded: false, reason: "already has gas", balance: balance.toString() });
