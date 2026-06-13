@@ -9,16 +9,26 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 /// @notice Onchain registry of scoped authority delegated by a World ID verified
 ///         principal to an AI agent. Vocabulary aligned with ERC-8226 (RAMS, Draft):
 ///         mandate, principal, scoped authority. Acts as the transfer gate consulted
-///         by GatedUSD. Mirror of the offchain attestation flow; Saturday's relayer
-///         lands attestations through updateFromAttestation.
+///         by GatedUSD. Mandates can only be created through submitAttestation
+///         with a registered attestor's EIP-712 signature; there is no
+///         permissionless path, which is what closes the squatting attack.
 contract DelegationMirror is Ownable, EIP712 {
     struct Mandate {
         address principal;
-        bytes32 worldIdNullifier;
+        bytes32 proofRef;
+        bytes32 kycRef;
         uint96 spendCapPerTx;
+        uint96 spendCapPerPeriod;
+        uint64 periodLength;
+        address allowedToken;
         uint64 expiry;
         bool revoked;
-        address allowedToken;
+        // Cumulative-spend bookkeeping. Stored and zero-initialized today; the
+        // spendCapPerPeriod enforcement that consumes them is a later workstream.
+        uint96 spentThisPeriod;
+        uint64 periodStart;
+        // The attestation nonce that wrote this mandate. Mirrors lastNonce[agent].
+        uint256 nonce;
     }
 
     /// @notice Signed payload an attestor produces offchain to authorize a mandate.
@@ -78,7 +88,6 @@ contract DelegationMirror is Ownable, EIP712 {
     error ZeroPrincipal();
     error InvalidAttestor(address signer);
     error StaleNonce(address agent, uint256 provided, uint256 last);
-    error MandateActive(address agent);
     error NoMandateFor(address agent);
     error NotPrincipal(address agent, address caller);
 
@@ -122,23 +131,43 @@ contract DelegationMirror is Ownable, EIP712 {
         return _hashTypedDataV4(hashStruct(a));
     }
 
-    /// @notice Caller becomes the principal of a new mandate for `agent`.
-    ///         Reverts if an active (non-revoked, non-expired) mandate already exists.
-    function delegate(address agent, bytes32 nullifier, uint96 cap, uint64 expiry, address token) external {
-        if (agent == address(0)) revert ZeroAgent();
-        Mandate storage existing = mandates[agent];
-        if (existing.principal != address(0) && !existing.revoked && block.timestamp < existing.expiry) {
-            revert MandateActive(agent);
-        }
-        mandates[agent] = Mandate({
-            principal: msg.sender,
-            worldIdNullifier: nullifier,
-            spendCapPerTx: cap,
-            expiry: expiry,
+    /// @notice Create or replace an agent's mandate from an attestor-signed
+    ///         payload. This is the ONLY way a mandate is created. The signature
+    ///         must recover to a registered attestor, and the nonce must be
+    ///         strictly higher than the agent's last consumed nonce, so neither
+    ///         an unauthorized party nor a replay of a previous attestation can
+    ///         create or reopen a mandate. Any tampered field changes the digest,
+    ///         recovers a different signer, and reverts InvalidAttestor.
+    function submitAttestation(Attestation calldata a, bytes calldata sig) external {
+        if (a.agent == address(0)) revert ZeroAgent();
+        if (a.principal == address(0)) revert ZeroPrincipal();
+
+        address signer = ECDSA.recover(_hashTypedDataV4(hashStruct(a)), sig);
+        if (!registeredAttestor[signer]) revert InvalidAttestor(signer);
+
+        uint256 last = lastNonce[a.agent];
+        if (a.nonce <= last) revert StaleNonce(a.agent, a.nonce, last);
+        lastNonce[a.agent] = a.nonce;
+
+        mandates[a.agent] = Mandate({
+            principal: a.principal,
+            proofRef: a.proofRef,
+            kycRef: a.kycRef,
+            spendCapPerTx: a.spendCapPerTx,
+            spendCapPerPeriod: a.spendCapPerPeriod,
+            periodLength: a.periodLength,
+            allowedToken: a.allowedToken,
+            expiry: a.expiry,
             revoked: false,
-            allowedToken: token
+            spentThisPeriod: 0,
+            // TODO(workstream-period): the enforcement task initializes periodStart
+            // on first spend; zero-init here per today's scope.
+            periodStart: 0,
+            nonce: a.nonce
         });
-        emit Delegated(agent, msg.sender, nullifier, cap, expiry, token);
+
+        emit AttestationSubmitted(a.agent, a.principal, signer, a.nonce);
+        emit Delegated(a.agent, a.principal, a.proofRef, a.spendCapPerTx, a.expiry, a.allowedToken);
     }
 
     /// @notice Kill switch. Only the principal of the mandate. Local and instant.
@@ -178,9 +207,4 @@ contract DelegationMirror is Ownable, EIP712 {
         if (token != m.allowedToken) return (false, TOKEN_NOT_ALLOWED);
         return (true, OK);
     }
-
-    /// @notice Entry point for the Saturday backend relayer path: a World ID
-    ///         attestation lands here and updates the mirrored mandate state.
-    // TODO(saturday): verify relayer payload and apply mandate updates.
-    function updateFromAttestation(bytes calldata) external onlyOwner {}
 }

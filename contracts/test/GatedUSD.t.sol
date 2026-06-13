@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import {Test} from "forge-std/Test.sol";
+import {AttestationHelper} from "./AttestationHelper.sol";
 import {DelegationMirror} from "../src/DelegationMirror.sol";
 import {GatedUSD} from "../src/GatedUSD.sol";
 import {ServiceSink} from "../src/ServiceSink.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract GatedUSDTest is Test {
+contract GatedUSDTest is AttestationHelper {
     DelegationMirror internal mirror;
     GatedUSD internal token;
     ServiceSink internal sink;
@@ -17,7 +17,7 @@ contract GatedUSDTest is Test {
     address internal payee = makeAddr("payee");
     address internal human = makeAddr("human");
 
-    bytes32 internal constant NULLIFIER = keccak256("worldid-nullifier");
+    bytes32 internal constant PROOF_REF = keccak256("worldid-proof");
     uint96 internal constant CAP = 100e6;
     uint64 internal expiry;
 
@@ -25,14 +25,14 @@ contract GatedUSDTest is Test {
         mirror = new DelegationMirror();
         token = new GatedUSD(address(mirror));
         sink = new ServiceSink(IERC20(address(token)));
+        _registerAttestor(mirror);
         expiry = uint64(block.timestamp + 1 days);
         token.faucetMint(agent, 1_000e6);
         token.faucetMint(human, 1_000e6);
     }
 
     function _delegate() internal {
-        vm.prank(principal);
-        mirror.delegate(agent, NULLIFIER, CAP, expiry, address(token));
+        _attest(mirror, agent, principal, PROOF_REF, CAP, expiry, address(token), 1);
     }
 
     function test_metadata() public view {
@@ -80,8 +80,7 @@ contract GatedUSDTest is Test {
 
     function test_blocked_tokenNotAllowed() public {
         // mandate scoped to a different token, so moving gUSD is out of scope
-        vm.prank(principal);
-        mirror.delegate(agent, NULLIFIER, CAP, expiry, makeAddr("someOtherToken"));
+        _attest(mirror, agent, principal, PROOF_REF, CAP, expiry, makeAddr("someOtherToken"), 1);
         bytes32 reason = mirror.TOKEN_NOT_ALLOWED();
         vm.prank(agent);
         vm.expectRevert(abi.encodeWithSelector(GatedUSD.TransferBlocked.selector, reason));
@@ -144,8 +143,7 @@ contract GatedUSDTest is Test {
 
         // TOKEN_NOT_ALLOWED: fresh agent with a mandate scoped to another token
         address agent2 = makeAddr("agent2");
-        vm.prank(principal);
-        mirror.delegate(agent2, NULLIFIER, CAP, expiry, makeAddr("someOtherToken"));
+        _attest(mirror, agent2, principal, PROOF_REF, CAP, expiry, makeAddr("someOtherToken"), 1);
         _assertAgreement(agent2, 1e6);
     }
 

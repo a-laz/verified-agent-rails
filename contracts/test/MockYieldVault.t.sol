@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import {Test} from "forge-std/Test.sol";
+import {AttestationHelper} from "./AttestationHelper.sol";
 import {DelegationMirror} from "../src/DelegationMirror.sol";
 import {GatedUSD} from "../src/GatedUSD.sol";
 import {MockYieldVault} from "../src/MockYieldVault.sol";
 
-contract MockYieldVaultTest is Test {
+contract MockYieldVaultTest is AttestationHelper {
     DelegationMirror internal mirror;
     GatedUSD internal token;
     MockYieldVault internal vault;
@@ -19,6 +19,7 @@ contract MockYieldVaultTest is Test {
         mirror = new DelegationMirror();
         token = new GatedUSD(address(mirror));
         vault = new MockYieldVault(token);
+        _registerAttestor(mirror);
         token.faucetMint(human, 1_000e6);
     }
 
@@ -65,8 +66,7 @@ contract MockYieldVaultTest is Test {
     /// amount is within cap and the mandate token is gUSD.
     function test_agentSweepToVaultRespectsGate() public {
         token.faucetMint(agent, 200e6);
-        vm.prank(principal);
-        mirror.delegate(agent, keccak256("n"), 100e6, uint64(block.timestamp + 1 days), address(token));
+        _attest(mirror, agent, principal, keccak256("n"), 100e6, uint64(block.timestamp + 1 days), address(token), 1);
 
         vm.startPrank(agent);
         token.approve(address(vault), type(uint256).max);
