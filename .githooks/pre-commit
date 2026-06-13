@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Blocks commits that contain likely secrets. Enable for your clone with:
+#   git config core.hooksPath .githooks
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+
+# Scan only the staged (added/copied/modified) files.
+files=()
+while IFS= read -r f; do files+=("$f"); done < <(git diff --cached --name-only --diff-filter=ACM)
+[ "${#files[@]}" -eq 0 ] && exit 0
+
+exec bash "$root/scripts/scan-secrets.sh" "${files[@]}"
