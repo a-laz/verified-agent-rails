@@ -38,3 +38,21 @@ forge script script/Deploy.s.sol --rpc-url "$ARC_TESTNET_RPC_URL" --broadcast
 # regenerate ABIs after contract changes
 cd shared && npm run build:abis
 ```
+
+## CI/CD
+
+GitHub Actions runs on every push to `main` and every PR (`.github/workflows/ci.yml`):
+
+- **Secret scan**: `scripts/scan-secrets.sh` greps tracked files for Dynamic tokens, raw private keys, and PEM blocks. Same script runs locally as a pre-commit hook.
+- **Contracts**: `forge fmt --check`, `forge build`, `forge test`.
+- **TypeScript**: typecheck `shared` and `agent`, build `web`.
+
+Enable the local pre-commit secret guard once per clone:
+
+```sh
+git config core.hooksPath .githooks
+```
+
+Append `# pragma: allowlist secret` to a line to suppress a false positive.
+
+**Deploy**: `web` deploys to Vercel via `.github/workflows/deploy-web.yml`, dormant until you set the repo variable `ENABLE_VERCEL_DEPLOY=true` and add the `VERCEL_*` secrets. Contract deploys are run manually after faucet funding, never automated.
