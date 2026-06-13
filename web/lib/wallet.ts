@@ -4,7 +4,7 @@ import type { Address, Hex } from "viem";
 import type { Wallet } from "@dynamic-labs/sdk-react-core";
 import { isEthereumWallet } from "@dynamic-labs/ethereum";
 import { arcTestnet, DelegationMirrorAbi } from "@var/shared";
-import { MIRROR } from "./var";
+import { arcPublic, MIRROR } from "./var";
 
 // A raw attestation as it crosses the API boundary: uint fields are decimal
 // strings (JSON cannot carry bigint). revive() turns them back into bigints for
@@ -59,7 +59,7 @@ export async function relaySubmitAttestation(
   signed: SignedAttestationWire,
 ): Promise<Hex> {
   const { walletClient, account } = await clientFor(primaryWallet);
-  return walletClient.writeContract({
+  const hash = await walletClient.writeContract({
     account,
     chain: arcTestnet,
     address: MIRROR,
@@ -67,12 +67,16 @@ export async function relaySubmitAttestation(
     functionName: "submitAttestation",
     args: [reviveAttestation(signed.attestation), signed.signature],
   });
+  // Wait for inclusion so a follow-up read reflects the new mandate (writeContract
+  // only broadcasts; Arc finality is sub-second).
+  await arcPublic.waitForTransactionReceipt({ hash });
+  return hash;
 }
 
 // Revoke is principal-only: the connected wallet must be the mandate's principal.
 export async function revokeMandate(primaryWallet: Wallet | null, agent: Address): Promise<Hex> {
   const { walletClient, account } = await clientFor(primaryWallet);
-  return walletClient.writeContract({
+  const hash = await walletClient.writeContract({
     account,
     chain: arcTestnet,
     address: MIRROR,
@@ -80,4 +84,6 @@ export async function revokeMandate(primaryWallet: Wallet | null, agent: Address
     functionName: "revoke",
     args: [agent],
   });
+  await arcPublic.waitForTransactionReceipt({ hash });
+  return hash;
 }
