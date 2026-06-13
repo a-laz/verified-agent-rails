@@ -6,6 +6,9 @@
 # persisted agent wallet (references a real MPC wallet; keep out of git)
 .agent-wallet.json
 
+# attestation audit log (references real agents/principals)
+.attestation-audit.log
+
 # node
 node_modules/
 

@@ -8,7 +8,14 @@
 // TODO(workstream-A): DelegationMirror.sol still carries a local copy of this
 // type string (its own TODO points here). Once this module is the agreed source,
 // regenerate any duplicated copies from it so Solidity and TS cannot drift.
-import { keccak256, toBytes, type Address, type Hex, type TypedDataDomain } from "viem";
+import {
+  encodeAbiParameters,
+  keccak256,
+  toBytes,
+  type Address,
+  type Hex,
+  type TypedDataDomain,
+} from "viem";
 
 // The canonical EIP-712 type string. keccak256 of its UTF-8 bytes is the
 // typehash the contract stores as ATTESTATION_TYPEHASH. Field order is locked.
@@ -55,6 +62,43 @@ export function buildDelegationMirrorDomain(
     chainId,
     verifyingContract,
   };
+}
+
+// The EIP712Domain member set the contract's OZ EIP712 base hashes over: name,
+// version, chainId, verifyingContract (no salt). This is the exact preimage of
+// OpenZeppelin's _domainSeparatorV4.
+export const EIP712_DOMAIN_TYPEHASH: Hex = keccak256(
+  toBytes("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+);
+
+/**
+ * Domain separator for a deployed mirror, computed exactly as OZ's
+ * _domainSeparatorV4: keccak256(abi.encode(typehash, keccak(name), keccak(version),
+ * chainId, verifyingContract)). Shared so the builder, Vlad's pipeline, and the
+ * contract all diff the same value (the contract exposes domainSeparator()).
+ */
+export function delegationMirrorDomainSeparator(
+  verifyingContract: Address,
+  chainId: number,
+): Hex {
+  return keccak256(
+    encodeAbiParameters(
+      [
+        { type: "bytes32" },
+        { type: "bytes32" },
+        { type: "bytes32" },
+        { type: "uint256" },
+        { type: "address" },
+      ],
+      [
+        EIP712_DOMAIN_TYPEHASH,
+        keccak256(toBytes(DELEGATION_MIRROR_DOMAIN_NAME)),
+        keccak256(toBytes(DELEGATION_MIRROR_DOMAIN_VERSION)),
+        BigInt(chainId),
+        verifyingContract,
+      ],
+    ),
+  );
 }
 
 // The attestation message. Field order mirrors the type string for readability;
