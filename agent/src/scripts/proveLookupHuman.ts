@@ -1,23 +1,25 @@
 /**
- * Proof script: confirm the lookupHuman primitive resolves for the already
- * registered agent BEFORE any attestation-bridge code is built on top of it.
+ * Proof script: confirm the lookupHuman primitive resolves for the registered
+ * agent BEFORE any attestation-bridge code is built on top of it.
  *
- * Per the brief, identity lives on the AgentBook deployment at
- * 0xA23aB2712eA7BBa896930544C7d6636a96b944dA on Base Sepolia.
+ * Identity lives on the canonical AgentBook deployment at
+ * 0xA23aB2712eA7BBa896930544C7d6636a96b944dA on World Chain (chainId 480).
  *
- * Two facts about the published @worldcoin/agentkit (0.2.0) that the brief did
- * not anticipate, verified against the package source:
+ * History: the original brief assumed identity lived on Base Sepolia. That was
+ * proven wrong empirically. The @worldcoin/agentkit-cli generates World ID
+ * proofs against World Chain's identity root, and submitting such a proof to the
+ * Base Sepolia AgentBook reverts with NonExistentRoot() (the root was never
+ * bridged there). The same proof verifies on World Chain, where the agent is now
+ * registered. So the read below targets World Chain, which is also the default
+ * the agentkit verifier uses.
+ *
+ * Two facts about the published @worldcoin/agentkit (0.2.0), verified against
+ * the package source:
  *   1. lookupHuman takes a single argument, lookupHuman(address). There is no
  *      lookupHuman(agent, chain). The chain is chosen when the verifier is
- *      constructed, via the rpcUrl option.
- *   2. The verifier defaults its read to World Chain. To honour "identity lives
- *      on Base Sepolia" we pass rpcUrl pointed at Base Sepolia; the canonical
- *      AgentBook address is the same on both, so only the RPC needs overriding.
- *
- * Two independent reads are performed so a broken RPC is never mistaken for an
- * unregistered agent:
- *   - a raw viem readContract, which surfaces reverts and transport errors.
- *   - the agentkit verifier, whose lookupHuman swallows every error to null.
+ *      constructed (it defaults to World Chain; rpcUrl can override the endpoint).
+ *   2. The verifier swallows every error to null, so a broken RPC looks identical
+ *      to an unregistered agent. The raw read below distinguishes them.
  *
  * Usage:
  *   npm run prove:lookup -w @var/agent -- 0xYourAgentAddress
@@ -34,7 +36,7 @@ import {
   toHex,
   type Address,
 } from "viem";
-import { baseSepolia } from "viem/chains";
+import { worldchain } from "viem/chains";
 import { createAgentBookVerifier } from "@worldcoin/agentkit";
 
 // Canonical AgentBook address. Equal to the @worldcoin/agentkit built-in
@@ -51,8 +53,6 @@ const AGENT_BOOK_ABI = [
     outputs: [{ name: "", type: "uint256" }],
   },
 ] as const;
-
-const DEFAULT_BASE_SEPOLIA_RPC = "https://sepolia.base.org";
 
 function loadAgentEnv(): void {
   // agent/.env sits two levels up from src/scripts.
@@ -82,15 +82,19 @@ function readAgentAddress(): Address {
 async function main(): Promise<void> {
   loadAgentEnv();
   const agent = readAgentAddress();
-  const rpcUrl = process.env.BASE_SEPOLIA_RPC_URL ?? DEFAULT_BASE_SEPOLIA_RPC;
+  // Optional override; default is viem's public World Chain RPC.
+  const rpcUrl = process.env.WORLDCHAIN_RPC_URL;
 
   console.log("lookupHuman proof");
   console.log("  agent:            ", agent);
   console.log("  agentBook:        ", AGENT_BOOK_ADDRESS);
-  console.log("  chain:            ", `${baseSepolia.name} (${baseSepolia.id})`);
-  console.log("  rpcUrl:           ", rpcUrl);
+  console.log("  chain:            ", `${worldchain.name} (${worldchain.id})`);
+  console.log("  rpcUrl:           ", rpcUrl ?? "(viem World Chain default public RPC)");
 
-  const client = createPublicClient({ chain: baseSepolia, transport: http(rpcUrl) });
+  const client = createPublicClient({
+    chain: worldchain,
+    transport: rpcUrl !== undefined && rpcUrl !== "" ? http(rpcUrl) : http(),
+  });
 
   // 1. RPC connectivity. A wrong RPC must fail loudly here, not masquerade as
   //    an unregistered agent further down.
@@ -99,14 +103,14 @@ async function main(): Promise<void> {
     onchainChainId = await client.getChainId();
   } catch (err) {
     throw new Error(
-      `Cannot reach Base Sepolia RPC at ${rpcUrl}. ` +
-        `Set BASE_SEPOLIA_RPC_URL in agent/.env. Cause: ${(err as Error).message}`,
+      `Cannot reach the World Chain RPC. ` +
+        `Set WORLDCHAIN_RPC_URL in agent/.env. Cause: ${(err as Error).message}`,
     );
   }
   console.log("  rpc chainId:      ", onchainChainId);
-  if (onchainChainId !== baseSepolia.id) {
+  if (onchainChainId !== worldchain.id) {
     throw new Error(
-      `RPC reports chainId ${onchainChainId}, expected ${baseSepolia.id} (Base Sepolia). ` +
+      `RPC reports chainId ${onchainChainId}, expected ${worldchain.id} (World Chain). ` +
         "Wrong network; the AgentBook read would be meaningless.",
     );
   }
@@ -121,7 +125,10 @@ async function main(): Promise<void> {
 
   // 3. Library path. The agentkit verifier returns a hex string or null and
   //    swallows errors, so we only trust it once the raw read above succeeded.
-  const verifier = createAgentBookVerifier({ rpcUrl });
+  //    No rpcUrl means the verifier uses its own World Chain default.
+  const verifier = createAgentBookVerifier(
+    rpcUrl !== undefined && rpcUrl !== "" ? { rpcUrl } : {},
+  );
   const libHuman = await verifier.lookupHuman(agent);
 
   const humanBacked = rawHumanId !== 0n;
@@ -149,8 +156,8 @@ async function main(): Promise<void> {
     console.log("");
     console.log("RESULT: NOT human-backed (lookupHuman returned 0).");
     console.log(
-      "Stop. Per the brief this means the registration or RPC is wrong; nothing " +
-        "downstream will work until this resolves non-zero.",
+      "Stop. The agent is not registered on World Chain, or the RPC is wrong; " +
+        "nothing downstream will work until this resolves non-zero.",
     );
     process.exitCode = 1;
     return;
