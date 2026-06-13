@@ -30,12 +30,7 @@ contract DelegationMirror is Ownable {
     mapping(address agent => Mandate) public mandates;
 
     event Delegated(
-        address indexed agent,
-        address indexed principal,
-        bytes32 nullifier,
-        uint96 cap,
-        uint64 expiry,
-        address token
+        address indexed agent, address indexed principal, bytes32 nullifier, uint96 cap, uint64 expiry, address token
     );
     event Revoked(address indexed agent, address indexed principal);
 
