@@ -73,6 +73,15 @@ contract DelegationMirror is Ownable {
         return mandates[agent];
     }
 
+    /// @notice True once an agent has a mandate on record. GatedUSD uses this to
+    ///         decide whether to gate a sender, so the token never destructures
+    ///         the Mandate tuple and stays decoupled from its field layout. A
+    ///         revoked mandate still reads as registered; checkTransfer returns
+    ///         REVOKED for it.
+    function isRegistered(address agent) external view returns (bool) {
+        return mandates[agent].principal != address(0);
+    }
+
     /// @notice Evaluates whether `from` may move `amount` of `token` under its mandate.
     ///         Reason codes are evaluated in declaration order.
     function checkTransfer(address from, address token, uint256 amount)
