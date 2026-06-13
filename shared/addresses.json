@@ -1,19 +1,19 @@
 {
   "DelegationMirror": {
-    "address": "0x5b81DD7718F4c2EaEd4626F39Ee025940Fbd1708",
-    "deployBlock": 46786171
+    "address": "0xbe84EA9Fd5BC15998bb4Df266bC99aA3B19C1531",
+    "deployBlock": 46890832
   },
   "GatedUSD": {
-    "address": "0xeB5C8Fd0684cD99DAe6a882D002442D43fb6a1fD",
-    "deployBlock": 46786171
+    "address": "0xF445467B2F8B06A7D130b49896C3Cab39b7C5892",
+    "deployBlock": 46890832
   },
   "MockYieldVault": {
-    "address": "0x95B055166e64a67eAb9cc6839fAa6DCB1670a798",
-    "deployBlock": 46786171
+    "address": "0xB91a906454FF51beE82E27f24f24A861222DdC44",
+    "deployBlock": 46890832
   },
   "ServiceSink": {
-    "address": "0x0b48E3F29AC8d0a0abeFEfd8B703C13AA0f2e95E",
-    "deployBlock": 46786171
+    "address": "0xF11A2B1D1C5BCD4Dc425b9691Bf13B4caFd93a0B",
+    "deployBlock": 46890832
   },
   "chainId": 5042002
 }
