@@ -72,6 +72,19 @@ export const DelegationMirrorAbi = [
   },
   {
     "type": "function",
+    "name": "OVER_PERIOD_CAP",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "REVOKED",
     "inputs": [],
     "outputs": [
@@ -536,6 +549,24 @@ export const DelegationMirrorAbi = [
   },
   {
     "type": "function",
+    "name": "recordSpend",
+    "inputs": [
+      {
+        "name": "agent",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "registeredAttestor",
     "inputs": [
       {
@@ -812,6 +843,37 @@ export const DelegationMirrorAbi = [
     "anonymous": false
   },
   {
+    "type": "event",
+    "name": "Spent",
+    "inputs": [
+      {
+        "name": "agent",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "spentThisPeriod",
+        "type": "uint96",
+        "indexed": false,
+        "internalType": "uint96"
+      },
+      {
+        "name": "periodStart",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
     "type": "error",
     "name": "ECDSAInvalidSignature",
     "inputs": []
@@ -858,6 +920,22 @@ export const DelegationMirrorAbi = [
     "type": "error",
     "name": "NoMandateFor",
     "inputs": [
+      {
+        "name": "agent",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "NotGatedToken",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "internalType": "address"
+      },
       {
         "name": "agent",
         "type": "address",
