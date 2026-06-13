@@ -70,6 +70,7 @@ export function RegisterGate({
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const valid = isAddress(agentInput);
   const agent = valid ? getAddress(agentInput) : null;
@@ -159,6 +160,25 @@ export function RegisterGate({
     [agent, status, fetchStatus],
   );
 
+  // Mint a fresh Dynamic MPC wallet, then drop its address into the field so it
+  // can be registered via World ID.
+  const handleCreateAgent = useCallback(async () => {
+    setCreating(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/var/create-agent", { method: "POST" });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error ?? "could not create agent");
+      setAgentInput(body.address as string);
+      setPhase("idle");
+      setTxHash(null);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setCreating(false);
+    }
+  }, []);
+
   const busy = phase === "relaying" || phase === "confirming";
   const registered = status?.registered ?? false;
 
@@ -210,6 +230,27 @@ export function RegisterGate({
               Not a valid Ethereum address.
             </span>
           ) : null}
+          <button
+            type="button"
+            onClick={handleCreateAgent}
+            disabled={creating}
+            style={{
+              alignSelf: "flex-start",
+              background: "none",
+              border: "1px solid var(--border-control)",
+              borderRadius: "var(--r-control)",
+              color: "var(--text-accent)",
+              fontSize: "var(--type-xs)",
+              fontFamily: "var(--font-ui)",
+              fontWeight: 600,
+              padding: "var(--sp-1) var(--sp-2)",
+              cursor: creating ? "wait" : "pointer",
+              marginTop: "var(--sp-1)",
+              opacity: creating ? 0.6 : 1,
+            }}
+          >
+            {creating ? "Creating MPC wallet…" : "+ Create new agent wallet"}
+          </button>
         </div>
 
         {/* Status / actions */}

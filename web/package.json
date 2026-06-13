@@ -9,6 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@dynamic-labs-wallet/core": "^1.0.16",
+    "@dynamic-labs-wallet/node-evm": "^1.0.38",
     "@dynamic-labs/ethereum": "^4.88.5",
     "@dynamic-labs/sdk-react-core": "^4.88.5",
     "@emotion/is-prop-valid": "^1.4.0",
