@@ -5,12 +5,16 @@
 import { NextResponse } from "next/server";
 import { getAddress, isAddress } from "viem";
 import { AGENT_BOOK_ADDRESS, REGISTER_RELAY_URL, type RegistrationPayload } from "@/lib/worldid";
+import { crossOriginBlocked } from "@/lib/sameOrigin";
 
 export const runtime = "nodejs";
 
 const HEX = /^0x[0-9a-fA-F]+$/;
 
 export async function POST(req: Request) {
+  const blocked = crossOriginBlocked(req);
+  if (blocked) return blocked;
+
   let body: Partial<RegistrationPayload>;
   try {
     body = await req.json();

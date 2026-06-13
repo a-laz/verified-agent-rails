@@ -15,6 +15,7 @@ import {
   parseUSDC,
 } from "@var/shared";
 import { getAgentSigner } from "@/lib/agentWallet.server";
+import { crossOriginBlocked } from "@/lib/sameOrigin";
 
 export const runtime = "nodejs";
 
@@ -29,6 +30,9 @@ function arcPublic() {
 }
 
 export async function POST(req: Request) {
+  const blocked = crossOriginBlocked(req);
+  if (blocked) return blocked;
+
   let body: { agent?: string; amount?: string };
   try {
     body = await req.json();

@@ -28,6 +28,7 @@ import {
   DelegationMirrorAbi,
   parseUSDC,
 } from "@var/shared";
+import { crossOriginBlocked } from "@/lib/sameOrigin";
 
 export const runtime = "nodejs";
 
@@ -45,6 +46,9 @@ const AGENT_BOOK_ABI = [
 const PRIVATE_KEY_RE = /^0x[0-9a-fA-F]{64}$/;
 
 export async function POST(req: Request) {
+  const blocked = crossOriginBlocked(req);
+  if (blocked) return blocked;
+
   const key = process.env.ATTESTOR_PRIVATE_KEY;
   if (!key || !PRIVATE_KEY_RE.test(key)) {
     return NextResponse.json(

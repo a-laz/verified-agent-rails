@@ -6,10 +6,14 @@ import { NextResponse } from "next/server";
 import { getAddress, isAddress } from "viem";
 import { DynamicEvmWalletClient } from "@dynamic-labs-wallet/node-evm";
 import { ThresholdSignatureScheme } from "@dynamic-labs-wallet/core";
+import { crossOriginBlocked } from "@/lib/sameOrigin";
 
 export const runtime = "nodejs";
 
-export async function POST() {
+export async function POST(req: Request) {
+  const blocked = crossOriginBlocked(req);
+  if (blocked) return blocked;
+
   const environmentId = process.env.DYNAMIC_ENVIRONMENT_ID;
   const apiToken = process.env.DYNAMIC_API_TOKEN ?? process.env.DYNAMIC_AUTH_TOKEN;
   const password = process.env.AGENT_WALLET_PASSWORD;
