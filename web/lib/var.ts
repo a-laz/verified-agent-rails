@@ -100,28 +100,50 @@ export interface FeedEntry {
   ts: number;
 }
 
+// The Arc testnet RPC caps eth_getLogs to a 10,000-block range, so a single
+// deployBlock->latest query fails once the chain advances past that window.
+// Page the scan in safe chunks and merge.
+const LOG_CHUNK = 9_000n;
+
 // Tx feed straight from mirror events for this agent: AttestationSubmitted (a
 // mandate was granted) and Revoked (a principal pulled the leash).
 export async function readFeed(agent: Address, limit = 20): Promise<FeedEntry[]> {
   const fromBlock = BigInt(ADDRESSES.DelegationMirror.deployBlock);
-  const [granted, revoked] = await Promise.all([
-    arcPublic.getContractEvents({
-      address: MIRROR,
-      abi: DelegationMirrorAbi,
-      eventName: "AttestationSubmitted",
-      args: { agent },
-      fromBlock,
-      toBlock: "latest",
-    }),
-    arcPublic.getContractEvents({
-      address: MIRROR,
-      abi: DelegationMirrorAbi,
-      eventName: "Revoked",
-      args: { agent },
-      fromBlock,
-      toBlock: "latest",
-    }),
+  const latest = await arcPublic.getBlockNumber();
+  const ranges: Array<readonly [bigint, bigint]> = [];
+  for (let start = fromBlock; start <= latest; start += LOG_CHUNK + 1n) {
+    const end = start + LOG_CHUNK > latest ? latest : start + LOG_CHUNK;
+    ranges.push([start, end]);
+  }
+
+  const [grantedChunks, revokedChunks] = await Promise.all([
+    Promise.all(
+      ranges.map(([s, e]) =>
+        arcPublic.getContractEvents({
+          address: MIRROR,
+          abi: DelegationMirrorAbi,
+          eventName: "AttestationSubmitted",
+          args: { agent },
+          fromBlock: s,
+          toBlock: e,
+        }),
+      ),
+    ),
+    Promise.all(
+      ranges.map(([s, e]) =>
+        arcPublic.getContractEvents({
+          address: MIRROR,
+          abi: DelegationMirrorAbi,
+          eventName: "Revoked",
+          args: { agent },
+          fromBlock: s,
+          toBlock: e,
+        }),
+      ),
+    ),
   ]);
+  const granted = grantedChunks.flat();
+  const revoked = revokedChunks.flat();
 
   const grantEntries: FeedEntry[] = granted.map((l) => ({
     action: "grant",

@@ -20,14 +20,12 @@ export function useVar(agent: Address, amount: string) {
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    try {
-      const [m, f] = await Promise.all([readMandate(agent), readFeed(agent)]);
-      setMandate(m);
-      setFeed(f);
-      setError(null);
-    } catch (e) {
-      setError((e as Error).message);
-    }
+    // Read mandate and feed independently: the feed's log scan can fail (RPC
+    // range limits) without blanking the mandate, which is the important read.
+    const [mRes, fRes] = await Promise.allSettled([readMandate(agent), readFeed(agent)]);
+    if (mRes.status === "fulfilled") setMandate(mRes.value);
+    if (fRes.status === "fulfilled") setFeed(fRes.value);
+    setError(mRes.status === "rejected" ? (mRes.reason as Error).message : null);
   }, [agent]);
 
   const refreshStatus = useCallback(async () => {
