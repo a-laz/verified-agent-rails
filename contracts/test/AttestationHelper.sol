@@ -66,4 +66,34 @@ abstract contract AttestationHelper is Test {
             _buildAttestation(agent, principal, proofRef, capPerTx, expiry, token, nonce);
         mirror.submitAttestation(a, _sign(mirror, a, attestorKey));
     }
+
+    /// Full variant exposing the per-period cap and period length, for the
+    /// period-enforcement suite. The compact _buildAttestation/_attest above keep
+    /// capPerPeriod == capPerTx for suites that only exercise the per-tx cap.
+    function _attestFull(
+        DelegationMirror mirror,
+        address agent,
+        address principal,
+        bytes32 proofRef,
+        uint96 capPerTx,
+        uint96 capPerPeriod,
+        uint64 periodLength,
+        uint64 expiry,
+        address token,
+        uint256 nonce
+    ) internal {
+        DelegationMirror.Attestation memory a = DelegationMirror.Attestation({
+            agent: agent,
+            principal: principal,
+            proofRef: proofRef,
+            kycRef: bytes32(0),
+            spendCapPerTx: capPerTx,
+            spendCapPerPeriod: capPerPeriod,
+            periodLength: periodLength,
+            allowedToken: token,
+            expiry: expiry,
+            nonce: nonce
+        });
+        mirror.submitAttestation(a, _sign(mirror, a, attestorKey));
+    }
 }

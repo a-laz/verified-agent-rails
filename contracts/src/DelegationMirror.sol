@@ -23,8 +23,10 @@ contract DelegationMirror is Ownable, EIP712 {
         address allowedToken;
         uint64 expiry;
         bool revoked;
-        // Cumulative-spend bookkeeping. Stored and zero-initialized today; the
-        // spendCapPerPeriod enforcement that consumes them is a later workstream.
+        // Cumulative-spend bookkeeping for the per-period cap. spentThisPeriod is
+        // the amount spent in the window that opened at periodStart. periodStart is
+        // 0 until the first gated spend, then set to that spend's block.timestamp.
+        // recordSpend maintains both; checkTransfer reads them with rollover.
         uint96 spentThisPeriod;
         uint64 periodStart;
         // The attestation nonce that wrote this mandate. Mirrors lastNonce[agent].
@@ -62,6 +64,7 @@ contract DelegationMirror is Ownable, EIP712 {
     bytes32 public constant EXPIRED = "EXPIRED";
     bytes32 public constant OVER_CAP = "OVER_CAP";
     bytes32 public constant TOKEN_NOT_ALLOWED = "TOKEN_NOT_ALLOWED";
+    bytes32 public constant OVER_PERIOD_CAP = "OVER_PERIOD_CAP";
 
     mapping(address agent => Mandate) public mandates;
 
@@ -83,6 +86,8 @@ contract DelegationMirror is Ownable, EIP712 {
         address indexed agent, address indexed principal, address indexed attestor, uint256 nonce
     );
     event AttestorSet(address indexed attestor, bool allowed);
+    /// @notice Emitted when a gated transfer accumulates against the period cap.
+    event Spent(address indexed agent, uint256 amount, uint96 spentThisPeriod, uint64 periodStart);
 
     error ZeroAgent();
     error ZeroPrincipal();
@@ -90,6 +95,7 @@ contract DelegationMirror is Ownable, EIP712 {
     error StaleNonce(address agent, uint256 provided, uint256 last);
     error NoMandateFor(address agent);
     error NotPrincipal(address agent, address caller);
+    error NotGatedToken(address caller, address agent);
 
     constructor() Ownable(msg.sender) EIP712("DelegationMirror", "1") {}
 
@@ -159,9 +165,9 @@ contract DelegationMirror is Ownable, EIP712 {
             allowedToken: a.allowedToken,
             expiry: a.expiry,
             revoked: false,
+            // Fresh window: no spend yet. periodStart stays 0 until the first
+            // gated spend, at which point recordSpend opens the window.
             spentThisPeriod: 0,
-            // TODO(workstream-period): the enforcement task initializes periodStart
-            // on first spend; zero-init here per today's scope.
             periodStart: 0,
             nonce: a.nonce
         });
@@ -193,7 +199,9 @@ contract DelegationMirror is Ownable, EIP712 {
     }
 
     /// @notice Evaluates whether `from` may move `amount` of `token` under its mandate.
-    ///         Reason codes are evaluated in declaration order.
+    ///         Reason codes are evaluated in declaration order; the per-period cap
+    ///         is checked last, after the per-tx cap and the token, and is additive
+    ///         (it never changes the per-tx outcome).
     function checkTransfer(address from, address token, uint256 amount)
         external
         view
@@ -205,6 +213,43 @@ contract DelegationMirror is Ownable, EIP712 {
         if (block.timestamp >= m.expiry) return (false, EXPIRED);
         if (amount > m.spendCapPerTx) return (false, OVER_CAP);
         if (token != m.allowedToken) return (false, TOKEN_NOT_ALLOWED);
+        // Cumulative per-period cap. spendCapPerPeriod == 0 means no period limit
+        // (per-tx only), so existing mandates are unaffected. The window rolls in
+        // this VIEW too: if it has elapsed (or never opened), effective spend is 0,
+        // so the view never reports stale period state before recordSpend writes it.
+        if (m.spendCapPerPeriod > 0 && m.periodLength > 0) {
+            uint256 spent = _periodRolled(m) ? 0 : m.spentThisPeriod;
+            if (spent + amount > m.spendCapPerPeriod) return (false, OVER_PERIOD_CAP);
+        }
         return (true, OK);
+    }
+
+    /// @notice Record a successful gated spend so the per-period cap accumulates.
+    ///         Accumulation lives in the mirror (Option A) so the mirror stays the
+    ///         single source of mandate truth and the token holds no mandate state.
+    ///         Only the agent's own allowedToken (the attestor-signed gated token)
+    ///         may call, which binds recording authority to the signed mandate and
+    ///         needs no separate owner-managed token registry or deploy step.
+    /// @dev    The caller (GatedUSD._update) calls checkTransfer first and reverts
+    ///         on a non-OK reason, so by here amount <= spendCapPerTx and the
+    ///         uint96 cast is exact, and spentThisPeriod <= spendCapPerPeriod holds.
+    function recordSpend(address agent, uint256 amount) external {
+        Mandate storage m = mandates[agent];
+        if (m.principal == address(0)) revert NoMandateFor(agent);
+        if (msg.sender != m.allowedToken) revert NotGatedToken(msg.sender, agent);
+        if (_periodRolled(m)) {
+            m.periodStart = uint64(block.timestamp);
+            m.spentThisPeriod = uint96(amount);
+        } else {
+            m.spentThisPeriod += uint96(amount);
+        }
+        emit Spent(agent, amount, m.spentThisPeriod, m.periodStart);
+    }
+
+    /// @dev True when the agent's period window is fresh: none has opened yet
+    ///      (periodStart == 0) or the current one has elapsed. Shared by the view
+    ///      (checkTransfer) and the writer (recordSpend) so they never disagree.
+    function _periodRolled(Mandate storage m) private view returns (bool) {
+        return m.periodStart == 0 || block.timestamp >= uint256(m.periodStart) + uint256(m.periodLength);
     }
 }
