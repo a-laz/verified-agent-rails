@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { DynamicWidget, useDynamicContext } from "@dynamic-labs/sdk-react-core";
-import { parseEther, type Address } from "viem";
+import type { Address } from "viem";
 import { parseUSDC } from "@var/shared";
 import { DEFAULT_AGENT, readAgentFunds, shortAddr } from "@/lib/var";
 import { useVar } from "@/lib/useVar";
@@ -10,7 +10,6 @@ import {
   faucetMintTo,
   relaySubmitAttestation,
   revokeMandate,
-  sendNativeToAgent,
   type SignedAttestationWire,
 } from "@/lib/wallet";
 import { WidgetCard } from "./ui/WidgetCard";
@@ -38,10 +37,6 @@ export function VarDashboard() {
   const [busy, setBusy] = useState<string | null>(null);
   const [toast, setToast] = useState<{ ok: boolean; text: string } | null>(null);
 
-  // Top up the agent's gas if it falls below this; send this much when topping up.
-  const GAS_MIN = parseEther("0.3");
-  const GAS_TOPUP = parseEther("1");
-
   const { mandate, feed, status, refresh, refreshStatus } = useVar(agent, amount);
 
   const handleCheck = async () => {
@@ -67,16 +62,24 @@ export function VarDashboard() {
       if (!res.ok) throw new Error(body.error ?? "grant failed");
       const tx = await relaySubmitAttestation(primaryWallet, body as SignedAttestationWire);
 
-      // Provision the agent from the connected wallet so it can actually pay:
-      // top up gas (native USDC) if low, and mint the gUSD budget difference.
+      // Provision the agent so it can actually pay. The gUSD budget is minted
+      // from the connected wallet (a clean contract call); the tiny native-USDC
+      // gas top-up is done server-side (Dynamic's send dialog misrenders Arc's
+      // 18-decimal native token, so we keep it out of the wallet UI).
       setToast({ ok: true, text: "Mandate granted. Provisioning the agent…" });
       const funds = await readAgentFunds(agent);
       const budget = parseUSDC(fundBudget && fundBudget !== "" ? fundBudget : "0");
       if (budget > funds.gusd) {
         await faucetMintTo(primaryWallet, agent, budget - funds.gusd);
       }
-      if (funds.native < GAS_MIN) {
-        await sendNativeToAgent(primaryWallet, agent, GAS_TOPUP);
+      const gasRes = await fetch("/api/var/fund-gas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agent }),
+      });
+      if (!gasRes.ok) {
+        const gasBody = await gasRes.json().catch(() => ({}));
+        throw new Error(gasBody.error ?? "agent gas top-up failed");
       }
 
       setToast({ ok: true, text: `Mandate granted & agent funded. tx ${tx}` });
