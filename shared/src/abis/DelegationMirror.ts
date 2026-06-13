@@ -7,6 +7,19 @@ export const DelegationMirrorAbi = [
   },
   {
     "type": "function",
+    "name": "ATTESTATION_TYPEHASH",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "EXPIRED",
     "inputs": [],
     "outputs": [
@@ -119,36 +132,59 @@ export const DelegationMirrorAbi = [
   },
   {
     "type": "function",
-    "name": "delegate",
-    "inputs": [
+    "name": "domainSeparator",
+    "inputs": [],
+    "outputs": [
       {
-        "name": "agent",
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "eip712Domain",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "fields",
+        "type": "bytes1",
+        "internalType": "bytes1"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "version",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "verifyingContract",
         "type": "address",
         "internalType": "address"
       },
       {
-        "name": "nullifier",
+        "name": "salt",
         "type": "bytes32",
         "internalType": "bytes32"
       },
       {
-        "name": "cap",
-        "type": "uint96",
-        "internalType": "uint96"
-      },
-      {
-        "name": "expiry",
-        "type": "uint64",
-        "internalType": "uint64"
-      },
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
+        "name": "extensions",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       }
     ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -172,7 +208,12 @@ export const DelegationMirrorAbi = [
             "internalType": "address"
           },
           {
-            "name": "worldIdNullifier",
+            "name": "proofRef",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "kycRef",
             "type": "bytes32",
             "internalType": "bytes32"
           },
@@ -180,6 +221,21 @@ export const DelegationMirrorAbi = [
             "name": "spendCapPerTx",
             "type": "uint96",
             "internalType": "uint96"
+          },
+          {
+            "name": "spendCapPerPeriod",
+            "type": "uint96",
+            "internalType": "uint96"
+          },
+          {
+            "name": "periodLength",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "allowedToken",
+            "type": "address",
+            "internalType": "address"
           },
           {
             "name": "expiry",
@@ -192,11 +248,201 @@ export const DelegationMirrorAbi = [
             "internalType": "bool"
           },
           {
+            "name": "spentThisPeriod",
+            "type": "uint96",
+            "internalType": "uint96"
+          },
+          {
+            "name": "periodStart",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "nonce",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "hashAttestation",
+    "inputs": [
+      {
+        "name": "a",
+        "type": "tuple",
+        "internalType": "struct DelegationMirror.Attestation",
+        "components": [
+          {
+            "name": "agent",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "principal",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "proofRef",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "kycRef",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "spendCapPerTx",
+            "type": "uint96",
+            "internalType": "uint96"
+          },
+          {
+            "name": "spendCapPerPeriod",
+            "type": "uint96",
+            "internalType": "uint96"
+          },
+          {
+            "name": "periodLength",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
             "name": "allowedToken",
             "type": "address",
             "internalType": "address"
+          },
+          {
+            "name": "expiry",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "nonce",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "hashStruct",
+    "inputs": [
+      {
+        "name": "a",
+        "type": "tuple",
+        "internalType": "struct DelegationMirror.Attestation",
+        "components": [
+          {
+            "name": "agent",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "principal",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "proofRef",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "kycRef",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "spendCapPerTx",
+            "type": "uint96",
+            "internalType": "uint96"
+          },
+          {
+            "name": "spendCapPerPeriod",
+            "type": "uint96",
+            "internalType": "uint96"
+          },
+          {
+            "name": "periodLength",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "allowedToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "expiry",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "nonce",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "isRegistered",
+    "inputs": [
+      {
+        "name": "agent",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "lastNonce",
+    "inputs": [
+      {
+        "name": "agent",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -218,7 +464,12 @@ export const DelegationMirrorAbi = [
         "internalType": "address"
       },
       {
-        "name": "worldIdNullifier",
+        "name": "proofRef",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "kycRef",
         "type": "bytes32",
         "internalType": "bytes32"
       },
@@ -226,6 +477,21 @@ export const DelegationMirrorAbi = [
         "name": "spendCapPerTx",
         "type": "uint96",
         "internalType": "uint96"
+      },
+      {
+        "name": "spendCapPerPeriod",
+        "type": "uint96",
+        "internalType": "uint96"
+      },
+      {
+        "name": "periodLength",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "allowedToken",
+        "type": "address",
+        "internalType": "address"
       },
       {
         "name": "expiry",
@@ -238,9 +504,19 @@ export const DelegationMirrorAbi = [
         "internalType": "bool"
       },
       {
-        "name": "allowedToken",
-        "type": "address",
-        "internalType": "address"
+        "name": "spentThisPeriod",
+        "type": "uint96",
+        "internalType": "uint96"
+      },
+      {
+        "name": "periodStart",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "nonce",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -254,6 +530,25 @@ export const DelegationMirrorAbi = [
         "name": "",
         "type": "address",
         "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "registeredAttestor",
+    "inputs": [
+      {
+        "name": "attestor",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -280,6 +575,94 @@ export const DelegationMirrorAbi = [
   },
   {
     "type": "function",
+    "name": "setAttestor",
+    "inputs": [
+      {
+        "name": "attestor",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "allowed",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "submitAttestation",
+    "inputs": [
+      {
+        "name": "a",
+        "type": "tuple",
+        "internalType": "struct DelegationMirror.Attestation",
+        "components": [
+          {
+            "name": "agent",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "principal",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "proofRef",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "kycRef",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "spendCapPerTx",
+            "type": "uint96",
+            "internalType": "uint96"
+          },
+          {
+            "name": "spendCapPerPeriod",
+            "type": "uint96",
+            "internalType": "uint96"
+          },
+          {
+            "name": "periodLength",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "allowedToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "expiry",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "nonce",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      },
+      {
+        "name": "sig",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "transferOwnership",
     "inputs": [
       {
@@ -292,17 +675,54 @@ export const DelegationMirrorAbi = [
     "stateMutability": "nonpayable"
   },
   {
-    "type": "function",
-    "name": "updateFromAttestation",
+    "type": "event",
+    "name": "AttestationSubmitted",
     "inputs": [
       {
-        "name": "",
-        "type": "bytes",
-        "internalType": "bytes"
+        "name": "agent",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "principal",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "attestor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "nonce",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "AttestorSet",
+    "inputs": [
+      {
+        "name": "attestor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "allowed",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -321,7 +741,7 @@ export const DelegationMirrorAbi = [
         "internalType": "address"
       },
       {
-        "name": "nullifier",
+        "name": "proofRef",
         "type": "bytes32",
         "indexed": false,
         "internalType": "bytes32"
@@ -345,6 +765,12 @@ export const DelegationMirrorAbi = [
         "internalType": "address"
       }
     ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "EIP712DomainChanged",
+    "inputs": [],
     "anonymous": false
   },
   {
@@ -387,14 +813,46 @@ export const DelegationMirrorAbi = [
   },
   {
     "type": "error",
-    "name": "MandateActive",
+    "name": "ECDSAInvalidSignature",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ECDSAInvalidSignatureLength",
     "inputs": [
       {
-        "name": "agent",
+        "name": "length",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ECDSAInvalidSignatureS",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "InvalidAttestor",
+    "inputs": [
+      {
+        "name": "signer",
         "type": "address",
         "internalType": "address"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "InvalidShortString",
+    "inputs": []
   },
   {
     "type": "error",
@@ -447,7 +905,44 @@ export const DelegationMirrorAbi = [
   },
   {
     "type": "error",
+    "name": "StaleNonce",
+    "inputs": [
+      {
+        "name": "agent",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "provided",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "last",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "StringTooLong",
+    "inputs": [
+      {
+        "name": "str",
+        "type": "string",
+        "internalType": "string"
+      }
+    ]
+  },
+  {
+    "type": "error",
     "name": "ZeroAgent",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroPrincipal",
     "inputs": []
   }
 ] as const;
