@@ -1,8 +1,9 @@
-// The agent spends, through the gate. The agent's own MPC wallet signs a
-// GatedUSD transfer to the ServiceSink; the mirror's mandate caps it. We
-// pre-check the mirror's gate (checkTransfer) so an over-cap attempt returns the
-// exact reason without a failed tx, then the agent sends the real transfer. This
-// is the "leash holds even if the agent is compromised" demonstration.
+// The agent spends, through the gate. The agent's own MPC wallet pays the
+// ServiceSink via ServiceSink.pay (approve + pay) so the ServiceSink.Paid event
+// fires; the mirror's mandate caps it. We pre-check the mirror's gate
+// (checkTransfer) so an over-cap or over-period attempt returns the exact reason
+// without a failed tx, then the agent sends the real payment. This is the
+// "leash holds even if the agent is compromised" demonstration.
 import { NextResponse } from "next/server";
 import { createPublicClient, getAddress, http, isAddress, type Address } from "viem";
 import {
@@ -11,6 +12,7 @@ import {
   DELEGATION_MIRROR_ADDRESS,
   DelegationMirrorAbi,
   GatedUSDAbi,
+  ServiceSinkAbi,
   decodeReason,
   parseUSDC,
 } from "@var/shared";
@@ -90,17 +92,30 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. The agent pays the service, gated by its mandate.
-    const hash = await walletClient.writeContract({
+    // 4. The agent pays the service via ServiceSink.pay so ServiceSink.Paid fires.
+    //    pay() pulls funds with transferFrom, so the agent approves first; both
+    //    calls are agent-signed and the transferFrom (from == agent) hits the
+    //    mirror gate, so the mandate still caps the spend.
+    const approveHash = await walletClient.writeContract({
       account: walletClient.account!,
       chain: arcTestnet,
       address: GUSD,
       abi: GatedUSDAbi,
-      functionName: "transfer",
+      functionName: "approve",
       args: [SERVICE_SINK, amountWei],
     });
+    await pub.waitForTransactionReceipt({ hash: approveHash });
+
+    const hash = await walletClient.writeContract({
+      account: walletClient.account!,
+      chain: arcTestnet,
+      address: SERVICE_SINK,
+      abi: ServiceSinkAbi,
+      functionName: "pay",
+      args: [amountWei],
+    });
     await pub.waitForTransactionReceipt({ hash });
-    return NextResponse.json({ ok: true, reason, amount, txHash: hash, to: SERVICE_SINK });
+    return NextResponse.json({ ok: true, reason, amount, txHash: hash, approveTxHash: approveHash, to: SERVICE_SINK });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 502 });
   }
