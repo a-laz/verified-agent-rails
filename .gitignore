@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+# persisted agent wallet (references a real MPC wallet; keep out of git)
+.agent-wallet.json
+
 # node
 node_modules/
 
