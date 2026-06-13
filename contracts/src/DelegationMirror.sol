@@ -2,6 +2,8 @@
 pragma solidity ^0.8.26;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /// @title DelegationMirror
 /// @notice Onchain registry of scoped authority delegated by a World ID verified
@@ -9,7 +11,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 ///         mandate, principal, scoped authority. Acts as the transfer gate consulted
 ///         by GatedUSD. Mirror of the offchain attestation flow; Saturday's relayer
 ///         lands attestations through updateFromAttestation.
-contract DelegationMirror is Ownable {
+contract DelegationMirror is Ownable, EIP712 {
     struct Mandate {
         address principal;
         bytes32 worldIdNullifier;
@@ -18,6 +20,30 @@ contract DelegationMirror is Ownable {
         bool revoked;
         address allowedToken;
     }
+
+    /// @notice Signed payload an attestor produces offchain to authorize a mandate.
+    ///         Field order is consensus-locked with CJ's TS signer and Vlad's
+    ///         pipeline signer; do not reorder unilaterally.
+    // TODO(workstream-A): replace this local copy with the shared schema module
+    // CJ owns once it exists, so Solidity and TS share one source of truth.
+    struct Attestation {
+        address agent;
+        address principal;
+        bytes32 proofRef;
+        bytes32 kycRef;
+        uint96 spendCapPerTx;
+        uint96 spendCapPerPeriod;
+        uint64 periodLength;
+        address allowedToken;
+        uint64 expiry;
+        uint256 nonce;
+    }
+
+    /// @dev EIP-712 type hash. Member list and order must match the Attestation
+    ///      struct above and CJ's and Vlad's typed-data definitions exactly.
+    bytes32 public constant ATTESTATION_TYPEHASH = keccak256(
+        "Attestation(address agent,address principal,bytes32 proofRef,bytes32 kycRef,uint96 spendCapPerTx,uint96 spendCapPerPeriod,uint64 periodLength,address allowedToken,uint64 expiry,uint256 nonce)"
+    );
 
     /// Machine readable reason codes, evaluated in this order.
     bytes32 public constant OK = "OK";
@@ -29,17 +55,72 @@ contract DelegationMirror is Ownable {
 
     mapping(address agent => Mandate) public mandates;
 
+    /// @notice Addresses allowed to sign attestations. Owner-managed today; a
+    ///         multisig is a later task.
+    mapping(address attestor => bool) public registeredAttestor;
+
+    /// @notice Highest attestation nonce consumed per agent. Strictly increasing,
+    ///         so a replayed or equal nonce reverts and a revoked or expired
+    ///         mandate can only be reopened by a fresh attestation carrying a
+    ///         higher nonce. Default 0 means nonces must start at 1.
+    mapping(address agent => uint256) public lastNonce;
+
     event Delegated(
-        address indexed agent, address indexed principal, bytes32 nullifier, uint96 cap, uint64 expiry, address token
+        address indexed agent, address indexed principal, bytes32 proofRef, uint96 cap, uint64 expiry, address token
     );
     event Revoked(address indexed agent, address indexed principal);
+    event AttestationSubmitted(
+        address indexed agent, address indexed principal, address indexed attestor, uint256 nonce
+    );
+    event AttestorSet(address indexed attestor, bool allowed);
 
     error ZeroAgent();
+    error ZeroPrincipal();
+    error InvalidAttestor(address signer);
+    error StaleNonce(address agent, uint256 provided, uint256 last);
     error MandateActive(address agent);
     error NoMandateFor(address agent);
     error NotPrincipal(address agent, address caller);
 
-    constructor() Ownable(msg.sender) {}
+    constructor() Ownable(msg.sender) EIP712("DelegationMirror", "1") {}
+
+    /// @notice Register or deregister an attestor signing key.
+    // TODO(workstream-A): move attestor management behind a multisig owner.
+    function setAttestor(address attestor, bool allowed) external onlyOwner {
+        registeredAttestor[attestor] = allowed;
+        emit AttestorSet(attestor, allowed);
+    }
+
+    /// @notice EIP-712 domain separator for the deployed instance. Exposed so CJ
+    ///         and Vlad can diff their domain builders against the live value.
+    function domainSeparator() external view returns (bytes32) {
+        return _domainSeparatorV4();
+    }
+
+    /// @notice EIP-712 hashStruct of an attestation. Address-independent, so it is
+    ///         the primary cross-implementation diff target for signer parity.
+    function hashStruct(Attestation calldata a) public pure returns (bytes32) {
+        return keccak256(
+            abi.encode(
+                ATTESTATION_TYPEHASH,
+                a.agent,
+                a.principal,
+                a.proofRef,
+                a.kycRef,
+                a.spendCapPerTx,
+                a.spendCapPerPeriod,
+                a.periodLength,
+                a.allowedToken,
+                a.expiry,
+                a.nonce
+            )
+        );
+    }
+
+    /// @notice Full EIP-712 digest a signer signs and submitAttestation recovers.
+    function hashAttestation(Attestation calldata a) public view returns (bytes32) {
+        return _hashTypedDataV4(hashStruct(a));
+    }
 
     /// @notice Caller becomes the principal of a new mandate for `agent`.
     ///         Reverts if an active (non-revoked, non-expired) mandate already exists.
