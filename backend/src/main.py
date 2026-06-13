@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.routers import chat, box, agents
+from src.routers import chat, box, agents, var
 from src.agentstack.storage import InMemoryStorageProvider, LocalStorageProvider
 
 
@@ -56,6 +56,9 @@ if _prod_origin:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
+    # Dev convenience: allow any localhost port — the Next dev server falls back to
+    # :3001+ when :3000 is taken. Production still pins explicit origins / FRONTEND_URL.
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -65,6 +68,7 @@ app.add_middleware(
 app.include_router(chat.router)
 app.include_router(box.router)
 app.include_router(agents.router)
+app.include_router(var.router)
 
 
 @app.get("/health", tags=["health"])

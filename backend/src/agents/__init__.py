@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 from .orchestrator import create_orchestrator
 from .researcher import create_researcher
+from .var_agent import create_var_agent
 
 if TYPE_CHECKING:
     from src.agentstack.agent import Agent
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
 AGENT_FACTORIES: dict[str, Callable] = {
     "Orchestrator": create_orchestrator,
     "Researcher": create_researcher,
+    "VAR": create_var_agent,
 }
 
 

@@ -53,6 +53,16 @@ data/uploads/
 *.log
 logs/
 
+# Hardhat build outputs
+contracts/artifacts/
+contracts/cache/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Runtime data
+data/
+
 # Misc
 *.pem
 *.pkl

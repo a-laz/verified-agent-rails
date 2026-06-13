@@ -33,7 +33,7 @@ export default function HeaderBar({ isOpen, onToggle }: HeaderBarProps) {
             textShadow: "var(--glass-text-glow)",
           }}
         >
-          Agent Stack
+          Verified Agent Rails
         </span>
         <span
           style={{
@@ -43,7 +43,7 @@ export default function HeaderBar({ isOpen, onToggle }: HeaderBarProps) {
             paddingLeft: "12px",
           }}
         >
-          Template App
+          An AI agent on a leash — enforced by the money itself
         </span>
       </div>
       <button

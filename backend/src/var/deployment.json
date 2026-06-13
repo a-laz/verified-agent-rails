@@ -1,0 +1,15 @@
+{
+  "network": "localhost",
+  "chainId": 31337,
+  "addresses": {
+    "AgentBook": "0xD84379CEae14AA33C123Af12424A37803F885889",
+    "EligibilityResolver": "0x2B0d36FACD61B71CC05ab8F3D2355ec3631C0dd5",
+    "GatedToken": "0xfbC22278A96299D91d41C453234d97b4F5Eb9B2d",
+    "YieldVault": "0x46b142DD1E924FAb83eCc3c08e4D46E82f005e0E"
+  },
+  "accounts": {
+    "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "agent": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "service": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+  }
+}

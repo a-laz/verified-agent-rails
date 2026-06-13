@@ -3,10 +3,11 @@
 import React, { useState } from "react";
 import HeaderBar from "@/components/shell/HeaderBar";
 import RightRail from "@/components/rail/RightRail";
-import WidgetGrid from "@/components/dashboard/WidgetGrid";
+import VarDashboard from "@/agents/VAR/VarDashboard";
 
 export default function AppShell() {
-  const [railOpen, setRailOpen] = useState(true);
+  // Chat rail hidden by default — judges should land on the VAR story, not a chat box.
+  const [railOpen, setRailOpen] = useState(false);
   const railWidth = 400;
 
   return (
@@ -24,7 +25,7 @@ export default function AppShell() {
     >
       <HeaderBar isOpen={railOpen} onToggle={() => setRailOpen((p) => !p)} />
       <main style={{ gridColumn: "1 / 2", gridRow: "2 / 3", overflow: "auto" }}>
-        <WidgetGrid />
+        <VarDashboard />
       </main>
       <RightRail isOpen={railOpen} />
     </div>

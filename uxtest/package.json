@@ -1,0 +1,9 @@
+{
+  "name": "var-uxtest",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Playwright screenshot harness for VAR dashboard usability testing",
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}

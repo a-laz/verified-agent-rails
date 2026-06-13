@@ -1,0 +1,20 @@
+{
+  "name": "var-sidecar",
+  "version": "1.0.0",
+  "description": "Verified Agent Rails — Dynamic signer sidecar. Production signing seam: tries Dynamic TSS-MPC delegated signing, falls back to local ethers signing so the local demo always runs.",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.0",
+    "express": "^4.19.2"
+  },
+  "optionalDependencies": {
+    "@dynamic-labs-wallet/node-evm": "*"
+  },
+  "license": "MIT"
+}
