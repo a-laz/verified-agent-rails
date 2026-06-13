@@ -62,6 +62,7 @@ contract DelegationMirror is Ownable, EIP712 {
     bytes32 public constant EXPIRED = "EXPIRED";
     bytes32 public constant OVER_CAP = "OVER_CAP";
     bytes32 public constant TOKEN_NOT_ALLOWED = "TOKEN_NOT_ALLOWED";
+    bytes32 public constant OVER_PERIOD_CAP = "OVER_PERIOD_CAP";
 
     mapping(address agent => Mandate) public mandates;
 
