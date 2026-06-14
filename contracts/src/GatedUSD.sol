@@ -23,24 +23,27 @@ contract GatedUSD is ERC20 {
     }
 
     /// @dev Gate only registered agent addresses: a sender with no mandate in the
-    ///      mirror (principal == 0) is not an agent and moves funds freely.
+    ///      mirror (principal == 0) is not an agent and moves funds freely. For a
+    ///      gated transfer, record the spend after it settles so the mirror can
+    ///      accumulate the per-period cap (the mirror is the single source of
+    ///      mandate truth; this token holds no mandate state).
     function _update(address from, address to, uint256 value) internal override {
-        if (from != address(0)) {
-            (address principal,,,,,) = mirror.mandates(from);
-            if (principal != address(0)) {
-                (bool ok, bytes32 reason) = mirror.checkTransfer(from, address(this), value);
-                if (!ok) revert TransferBlocked(reason);
-            }
+        bool gated = from != address(0) && mirror.isRegistered(from);
+        if (gated) {
+            (bool ok, bytes32 reason) = mirror.checkTransfer(from, address(this), value);
+            if (!ok) revert TransferBlocked(reason);
         }
         super._update(from, to, value);
+        if (gated) {
+            mirror.recordSpend(from, value);
+        }
     }
 
     /// @notice ERC-7943 compliance surface. Thin wrapper over the mirror's checkTransfer.
     function canTransfer(address from, address to, uint256 amount) external view returns (bool) {
         to; // unused, kept for the ERC-7943 signature
         if (from == address(0)) return true;
-        (address principal,,,,,) = mirror.mandates(from);
-        if (principal == address(0)) return true;
+        if (!mirror.isRegistered(from)) return true;
         (bool ok,) = mirror.checkTransfer(from, address(this), amount);
         return ok;
     }

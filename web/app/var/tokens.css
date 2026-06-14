@@ -1,0 +1,192 @@
+/* Design tokens for the VAR dashboard — the "Rein" design system.
+   Ported from the standalone branding kit (dashboard-standalone.html).
+
+   The widgets consume the *semantic* names (--bg, --panel, --accent, --success,
+   ...) exactly as before; this file just repoints those names onto the Rein
+   palette + type system, so the restyle flows through the token layer.
+   Fonts are self-hosted via next/font (see app/layout.tsx), which sets the
+   --font-* variables the stacks below reference. */
+
+:root {
+  /* ---- Rein primitives: warm neutral ramp (paper → ink) ---- */
+  --n-0: #ffffff;
+  --n-50: #f8f6f1; /* paper / page background */
+  --n-100: #f0ede5;
+  --n-200: #e2ddd1;
+  --n-300: #cdc6b6;
+  --n-400: #aba290;
+  --n-500: #867d6b;
+  --n-600: #615a4b;
+  --n-700: #453f33;
+  --n-800: #2b2820;
+  --n-900: #191712; /* primary ink */
+  --n-950: #100f0b; /* deepest ink */
+
+  /* ---- Rein primitives: green (primary accent) ---- */
+  --green-50: #e6f8ef;
+  --green-100: #c5f0da;
+  --green-300: #5fd9a0;
+  --green-500: #0fb877; /* primary accent */
+  --green-600: #0a9560;
+  --green-700: #0a6e49;
+  --green-900: #083621;
+
+  /* ---- Rein primitives: red / amber / blue ---- */
+  --red-50: #fcedea;
+  --red-500: #e5482e;
+  --red-600: #c73a22;
+  --red-700: #9e2c18;
+
+  --amber-50: #fbf1da;
+  --amber-500: #e8920c;
+  --amber-700: #8a5607;
+
+  --blue-50: #e9f0fd;
+  --blue-500: #2d6be0;
+  --blue-700: #1b4699;
+
+  /* ---- Rein elevation (warm ink-tinted shadows) ---- */
+  --shadow-sm: 0 1px 3px rgba(16, 15, 11, 0.08), 0 1px 2px rgba(16, 15, 11, 0.04);
+  --shadow-md: 0 6px 16px rgba(16, 15, 11, 0.09), 0 2px 5px rgba(16, 15, 11, 0.05);
+
+  /* ====================================================================
+     Semantic layer — names consumed by the widgets, mapped onto Rein.
+     ==================================================================== */
+
+  /* Surfaces */
+  --bg: var(--n-50);
+  --panel: var(--n-0);
+  --panel-2: var(--n-100);
+  --panel-3: var(--green-50);
+
+  /* Text */
+  --text: var(--n-900);
+  --muted: var(--n-600);
+  --subtle: var(--n-500);
+  --text-inverse: var(--n-50); /* light text on dark/red fills */
+  --text-on-accent: var(--n-950); /* ink on bright green — high contrast */
+  --text-accent: var(--green-700); /* readable green for small accent text */
+
+  /* Borders */
+  --border: var(--n-200);
+  --border-strong: var(--n-900); /* Rein signature ink hairline */
+  --border-control: var(--n-300);
+
+  /* Primary intent (green) */
+  --accent: var(--green-500);
+  --accent-hover: var(--green-600);
+  --accent-pressed: var(--green-700);
+  --accent-soft: var(--green-50);
+
+  /* AI/system accent (Rein has no purple; mapped to blue) */
+  --ai: var(--blue-500);
+  --ai-hover: var(--blue-700);
+  --ai-pressed: var(--blue-700);
+  --ai-soft: var(--blue-50);
+
+  /* Status — picked from the ramp for AA contrast on light surfaces */
+  --success: var(--green-700);
+  --success-soft: var(--green-50);
+  --warning: var(--amber-700);
+  --warning-soft: var(--amber-50);
+  --danger: var(--red-600);
+  --danger-soft: var(--red-50);
+
+  /* Elevation */
+  --shadow-e1: var(--shadow-sm);
+  --shadow-e2: var(--shadow-md);
+
+  /* Typography — stacks resolve next/font CSS vars, then named fallbacks */
+  --font-display: var(--font-space-grotesk), "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-ui: var(--font-hanken-grotesk), "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-data: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Typography scale (responsive clamps retained from prior system) */
+  --type-2xs: clamp(8px, 0.291vw, 10px);
+  --type-xs: clamp(9px, 0.32vw, 11px);
+  --type-sm: clamp(10px, 0.349vw, 12px);
+  --type-base: clamp(12px, 0.4vw, 14px);
+  --type-lg: clamp(14px, 0.5vw, 17px);
+  --type-xl: clamp(16px, 0.6vw, 20px);
+  --type-2xl: clamp(20px, 0.85vw, 28px);
+
+  /* Line heights / tracking (Rein) */
+  --leading-normal: 1.5;
+  --tracking-wide: 0.02em;
+  --tracking-caps: 0.09em; /* uppercase mono eyebrows */
+
+  /* Spacing */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: clamp(12px, 0.465vw, 16px);
+  --sp-5: clamp(16px, 0.698vw, 24px);
+  --sp-6: clamp(20px, 0.93vw, 32px);
+
+  /* Radius (Rein) */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-control: 10px;
+  --r-card: 14px;
+  --r-pill: 999px;
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 120ms;
+
+  /* Surface system consumed by WidgetCard / feed dividers */
+  --glass-bg: var(--panel);
+  --glass-bg-hover: var(--panel-2);
+  --glass-backdrop: none;
+  --glass-border: var(--border);
+  --glass-shadow: var(--shadow-e1);
+}
+
+/* Dark theme — set data-theme="dark" on <html> to activate (kit-ready; no
+   toggle wired yet). Only the semantic layer is remapped. */
+[data-theme="dark"] {
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.5), 0 2px 5px rgba(0, 0, 0, 0.35);
+
+  --bg: var(--n-950);
+  --panel: #1b1914;
+  --panel-2: #141209;
+  --panel-3: #221f18;
+
+  --text: var(--n-50);
+  --muted: var(--n-400);
+  --subtle: var(--n-500);
+  --text-inverse: var(--n-900);
+  --text-on-accent: var(--n-950);
+  --text-accent: var(--green-300);
+
+  --border: #2b2820;
+  --border-strong: var(--n-0);
+  --border-control: #3a352b;
+
+  --success: var(--green-300);
+  --success-soft: rgba(15, 184, 119, 0.16);
+  --warning: var(--amber-500);
+  --warning-soft: rgba(232, 146, 12, 0.16);
+  --danger: #f19c88;
+  --danger-soft: rgba(229, 72, 46, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+  }
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+
+* {
+  box-sizing: border-box;
+}

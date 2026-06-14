@@ -1,6 +1,8 @@
 {
   "name": "verified-agent-rails",
   "private": true,
+  "license": "MIT",
+  "author": "Alex Lazarev",
   "workspaces": [
     "shared",
     "agent",

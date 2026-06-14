@@ -1,8 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    // Bundler resolution matches the tsx/esbuild runtime this package actually
+    // runs under, and unlike NodeNext it tolerates the extensionless re-export in
+    // @dynamic-labs-wallet's published .d.ts type entry.
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "lib": ["ES2022"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
