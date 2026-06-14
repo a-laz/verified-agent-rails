@@ -62,7 +62,7 @@ export function RegisterGate({
   onEnter,
 }: {
   defaultAgent: Address;
-  onEnter: (agent: Address, humanId: string | null) => void;
+  onEnter: (agent: Address, humanId: string | null, walletId: string | null) => void;
 }) {
   const [agentInput, setAgentInput] = useState<string>(defaultAgent);
   const [status, setStatus] = useState<AgentStatus | null>(null);
@@ -71,6 +71,10 @@ export function RegisterGate({
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  // walletId of an agent minted via "Create new agent", so the console can sign
+  // pays as it. Cleared when the address is edited by hand (then only the
+  // default configured agent can pay).
+  const [createdWalletId, setCreatedWalletId] = useState<string | null>(null);
 
   const valid = isAddress(agentInput);
   const agent = valid ? getAddress(agentInput) : null;
@@ -170,6 +174,7 @@ export function RegisterGate({
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "could not create agent");
       setAgentInput(body.address as string);
+      setCreatedWalletId((body.walletId as string) ?? null);
       setPhase("idle");
       setTxHash(null);
     } catch (e) {
@@ -219,6 +224,7 @@ export function RegisterGate({
             value={agentInput}
             onChange={(e) => {
               setAgentInput(e.target.value.trim());
+              setCreatedWalletId(null); // typed address is not a wallet we can sign for
               setPhase("idle");
               setTxHash(null);
             }}
@@ -301,7 +307,7 @@ export function RegisterGate({
               ) : null}
               <button
                 type="button"
-                onClick={() => onEnter(agent as Address, status?.humanId ?? null)}
+                onClick={() => onEnter(agent as Address, status?.humanId ?? null, createdWalletId)}
                 style={primaryBtn}
               >
                 Enter console →

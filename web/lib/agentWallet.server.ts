@@ -11,22 +11,31 @@ interface AgentSigner {
   address: Address;
 }
 
-function readConfig() {
+// A walletId is a Dynamic UUID; reject anything that does not look like one
+// before hitting the SDK.
+const WALLET_ID_RE = /^[0-9a-fA-F-]{8,64}$/;
+
+function readConfig(walletIdOverride?: string) {
   const environmentId = process.env.DYNAMIC_ENVIRONMENT_ID;
   const apiToken = process.env.DYNAMIC_API_TOKEN ?? process.env.DYNAMIC_AUTH_TOKEN;
   const password = process.env.AGENT_WALLET_PASSWORD;
-  const walletId = process.env.AGENT_WALLET_ID;
+  // Override lets the caller sign as a wallet created at runtime (the "create
+  // new agent" flow); otherwise fall back to the default configured agent.
+  const walletId = walletIdOverride ?? process.env.AGENT_WALLET_ID;
   const missing = [
     environmentId ? null : "DYNAMIC_ENVIRONMENT_ID",
     apiToken ? null : "DYNAMIC_API_TOKEN",
     password ? null : "AGENT_WALLET_PASSWORD",
-    walletId ? null : "AGENT_WALLET_ID",
+    walletId ? null : "AGENT_WALLET_ID (or a walletId in the request)",
   ].filter((n): n is string => n !== null);
   if (missing.length > 0) {
     throw new Error(
       `Missing agent wallet config in web/.env.local: ${missing.join(", ")}. ` +
         "Copy them from agent/.env and agent/.agent-wallet.json.",
     );
+  }
+  if (walletIdOverride !== undefined && !WALLET_ID_RE.test(walletIdOverride)) {
+    throw new Error("Invalid walletId.");
   }
   return {
     environmentId: environmentId as string,
@@ -43,8 +52,8 @@ function arcRpcUrl(): string {
 // Recover a signing WalletClient for the persisted agent wallet on Arc. Uses
 // getWallets() (carries the backup info getWalletClient needs to recover the MPC
 // server key share) + the backup password — same path as the agent workspace.
-export async function getAgentSigner(): Promise<AgentSigner> {
-  const { environmentId, apiToken, password, walletId } = readConfig();
+export async function getAgentSigner(walletIdOverride?: string): Promise<AgentSigner> {
+  const { environmentId, apiToken, password, walletId } = readConfig(walletIdOverride);
   const client = new DynamicEvmWalletClient({ environmentId });
   await client.authenticateApiToken(apiToken);
 
@@ -52,7 +61,7 @@ export async function getAgentSigner(): Promise<AgentSigner> {
   const walletMetadata = wallets.find((w) => w.walletId === walletId);
   if (!walletMetadata) {
     throw new Error(
-      `Configured AGENT_WALLET_ID ${walletId} not found in the Dynamic environment.`,
+      `walletId ${walletId} not found in the Dynamic environment.`,
     );
   }
 

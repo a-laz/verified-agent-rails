@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   const blocked = crossOriginBlocked(req);
   if (blocked) return blocked;
 
-  let body: { agent?: string; amount?: string };
+  let body: { agent?: string; amount?: string; walletId?: string };
   try {
     body = await req.json();
   } catch {
@@ -45,6 +45,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing or invalid agent address." }, { status: 400 });
   }
   const agent = getAddress(body.agent);
+  // Optional: sign as a wallet created at runtime ("create new agent" flow).
+  // Without it, the server signs as the default configured agent. The
+  // address check below rejects any walletId that does not match the agent.
+  const walletId = typeof body.walletId === "string" && body.walletId !== "" ? body.walletId : undefined;
   const amount = body.amount && body.amount !== "" ? body.amount : "5";
   const amountWei = parseUSDC(amount);
 
@@ -64,11 +68,16 @@ export async function POST(req: Request) {
     }
 
     // 2. Recover the agent's MPC wallet (it must be the sender the gate checks).
-    const { walletClient, address: signerAddress } = await getAgentSigner();
+    //    A walletId from the request signs as a runtime-created agent; otherwise
+    //    the default configured agent. Either way the recovered address must
+    //    equal the requested agent, so a wrong/missing walletId is rejected.
+    const { walletClient, address: signerAddress } = await getAgentSigner(walletId);
     if (getAddress(signerAddress) !== agent) {
       return NextResponse.json(
         {
-          error: `Configured agent wallet (${signerAddress}) is not the requested agent (${agent}).`,
+          error: walletId
+            ? `walletId resolves to ${signerAddress}, not the requested agent (${agent}).`
+            : `No walletId given and the configured agent (${signerAddress}) is not the requested agent (${agent}). Pass the created agent's walletId.`,
         },
         { status: 409 },
       );

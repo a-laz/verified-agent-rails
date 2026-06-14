@@ -28,6 +28,9 @@ export function VarDashboard() {
   const [entered, setEntered] = useState(false);
   const [activeAgent, setActiveAgent] = useState<Address>(DEFAULT_AGENT);
   const [humanId, setHumanId] = useState<string | null>(null);
+  // walletId of a runtime-created agent so the pay route can sign as it; null
+  // for the default configured agent (the server uses AGENT_WALLET_ID then).
+  const [activeWalletId, setActiveWalletId] = useState<string | null>(null);
   const agent = activeAgent;
 
   const [amount, setAmount] = useState("25");
@@ -98,7 +101,7 @@ export function VarDashboard() {
       const res = await fetch("/api/var/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agent, amount }),
+        body: JSON.stringify({ agent, amount, walletId: activeWalletId ?? undefined }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "pay failed");
@@ -134,9 +137,10 @@ export function VarDashboard() {
     return (
       <RegisterGate
         defaultAgent={DEFAULT_AGENT}
-        onEnter={(a, hid) => {
+        onEnter={(a, hid, wid) => {
           setActiveAgent(a);
           setHumanId(hid);
+          setActiveWalletId(wid);
           setEntered(true);
         }}
       />
